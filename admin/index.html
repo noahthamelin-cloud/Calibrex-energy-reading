@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Leads · CalibreX</title>
+<link rel="icon" href="/assets/brand/logo.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/fonts/fonts.css">
+<style>
+:root{
+  --porcelain:#EEF1EF; --panel:#F9FBFA; --carbon:#0C100F; --ink:#171D1A; --steel:#5D6862; --hairline:#D3DAD6; --verdant:#1E6B4E; --signal:#35B585;
+  --display:"Archivo", "Helvetica Neue", Arial, sans-serif; --sans:"Instrument Sans", "Helvetica Neue", Arial, sans-serif; --mono:"IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: light;
+}
+*,*::before,*::after{box-sizing:border-box; border-radius:0}
+body{margin:0; background:var(--porcelain); color:var(--ink); font-family:var(--sans); font-size:15px; line-height:1.5; -webkit-font-smoothing:antialiased; padding-top:env(safe-area-inset-top,0px)}
+button,input,select{font:inherit; color:inherit}
+:focus-visible{outline:2px solid var(--verdant); outline-offset:2px}
+.wrap{max-width:820px; margin:0 auto; padding:0 18px}
+.disp{font-family:var(--display); font-stretch:125%; font-weight:600; text-transform:uppercase; line-height:.96; margin:0}
+.mono{font-family:var(--mono); text-transform:uppercase; letter-spacing:.24em; font-size:9px; color:var(--steel)}
+.eyebrow{display:flex; align-items:center; gap:10px; font-family:var(--mono); font-size:10px; letter-spacing:.3em; text-transform:uppercase; color:var(--verdant); margin:0 0 12px}
+.eyebrow::before{content:""; width:6px; height:6px; background:var(--signal)}
+.btn{display:inline-flex; align-items:center; justify-content:center; min-height:44px; padding:10px 18px; border:0; background:var(--ink); color:var(--porcelain); font-family:var(--mono); font-size:10px; letter-spacing:.2em; text-transform:uppercase; cursor:pointer; text-decoration:none; white-space:nowrap}
+.btn:hover{background:var(--verdant)}
+.btn.line{background:transparent; color:var(--ink); border:1px solid var(--hairline)}
+.btn.line:hover{background:var(--panel); border-color:var(--ink)}
+.btn[disabled]{opacity:.35}
+
+.login{min-height:100vh; min-height:100dvh; display:flex; align-items:center}
+.login .card{width:100%; max-width:400px; margin:0 auto; padding:0 22px}
+.login img{height:12px; margin-bottom:34px}
+.login h1{font-size:34px; margin-bottom:10px}
+.login p{color:var(--steel); margin:0 0 24px}
+.login input{width:100%; background:var(--panel); border:1px solid var(--hairline); padding:14px; font-size:17px; margin-bottom:12px; outline:none}
+.login input:focus{border-color:var(--ink)}
+.login .btn{width:100%; min-height:50px}
+.login .err{font-size:13px; min-height:20px; margin:10px 0 0; font-weight:500}
+
+.bar{position:sticky; top:0; z-index:5; background:var(--porcelain); border-bottom:1px solid var(--hairline); padding:14px 0}
+.bar .wrap{display:flex; align-items:center; justify-content:space-between; gap:12px}
+.bar img{height:11px}
+.stats{display:grid; grid-template-columns:repeat(4,1fr); border:1px solid var(--hairline); background:var(--panel); margin:20px 0}
+.stat{padding:12px 14px; border-left:1px solid var(--hairline)}
+.stat:first-child{border-left:0}
+.stat b{display:block; font-family:var(--display); font-stretch:125%; font-weight:600; font-size:30px; line-height:1}
+.stat span{font-family:var(--mono); font-size:8px; letter-spacing:.22em; text-transform:uppercase; color:var(--steel)}
+@media (max-width:520px){ .stats{grid-template-columns:1fr 1fr} .stat:nth-child(3){border-left:0} .stat:nth-child(n+3){border-top:1px solid var(--hairline)} }
+.controls{display:grid; grid-template-columns:1fr; gap:8px; margin-bottom:14px}
+@media (min-width:640px){ .controls{grid-template-columns:1.5fr 1fr 1fr auto} }
+.controls input,.controls select{width:100%; background:var(--panel); border:1px solid var(--hairline); padding:10px 12px; min-height:44px; outline:none}
+.controls input:focus,.controls select:focus{border-color:var(--ink)}
+.list{border:1px solid var(--hairline); background:var(--panel); margin-bottom:40px}
+.lead{display:block; width:100%; text-align:left; background:transparent; border:0; border-top:1px solid var(--hairline); padding:14px 16px; cursor:pointer}
+.lead:first-child{border-top:0}
+.lead:hover{background:#fff}
+.lead .top{display:flex; justify-content:space-between; align-items:baseline; gap:10px}
+.lead b{font-family:var(--display); font-stretch:125%; font-weight:600; text-transform:uppercase; font-size:15px}
+.lead time{font-family:var(--mono); font-size:9px; letter-spacing:.15em; color:var(--steel); white-space:nowrap}
+.lead .sub{display:flex; gap:6px; flex-wrap:wrap; margin-top:8px; align-items:center}
+.chip{display:inline-block; border:1px solid var(--hairline); padding:3px 8px; font-family:var(--mono); font-size:9px; letter-spacing:.15em; text-transform:uppercase; color:var(--ink); background:var(--porcelain)}
+.chip.ink{background:var(--ink); color:var(--porcelain); border-color:var(--ink)}
+.chip.ok{border-color:var(--verdant); color:var(--verdant)}
+.chip.new{background:var(--verdant); color:#fff; border-color:var(--verdant)}
+.empty{text-align:center; color:var(--steel); padding:50px 16px; margin:0}
+
+.sheet{position:fixed; inset:0; background:rgba(12,16,15,.4); z-index:20; display:none}
+.sheet.on{display:block}
+.panel{position:absolute; right:0; top:0; bottom:0; width:100%; max-width:580px; background:var(--porcelain); overflow:auto; padding-bottom:40px; border-left:1px solid var(--hairline)}
+.panel .head{position:sticky; top:0; background:var(--porcelain); border-bottom:1px solid var(--hairline); padding:16px 20px; display:flex; justify-content:space-between; align-items:flex-start; gap:12px; z-index:2}
+.panel .head h2{font-size:24px}
+.panel .head p{margin:6px 0 0}
+.panel .x{background:none; border:1px solid var(--hairline); width:40px; height:40px; font-size:22px; line-height:1; cursor:pointer}
+.panel section{padding:22px 20px 0}
+.plate{border:1px solid var(--hairline); background:var(--panel)}
+.kv{display:grid; grid-template-columns:110px 1fr}
+.kv span,.kv a,.kv div{padding:10px 12px; border-top:1px solid var(--hairline); font-size:14px; word-break:break-word}
+.kv > :nth-child(-n+2){border-top:0}
+.kv span.k{font-family:var(--mono); font-size:9px; letter-spacing:.2em; text-transform:uppercase; color:var(--steel); border-right:1px solid var(--hairline); padding-top:13px}
+.kv a{color:var(--ink)}
+.callprep{padding:14px 16px}
+.callprep .big{font-family:var(--display); font-stretch:125%; font-weight:600; text-transform:uppercase; font-size:20px; margin:6px 0}
+.callprep p{margin:6px 0 0; font-size:14px}
+.opener{border:1px solid var(--hairline); background:#fff; padding:12px 14px; font-size:14px; margin:12px 0}
+.acts{display:grid; grid-template-columns:1fr 1fr; gap:8px}
+.acts .btn{width:100%}
+.acts .btn.pref{outline:2px solid var(--verdant); outline-offset:-2px}
+.meter{padding:12px 14px; border-top:1px solid var(--hairline)}
+.meter:first-child{border-top:0}
+.meter .row{display:flex; justify-content:space-between; margin-bottom:8px}
+.meter .row b{font-family:var(--display); font-stretch:125%; font-weight:600; text-transform:uppercase; font-size:12px}
+.meter .row span{font-family:var(--mono); font-size:10px; letter-spacing:.12em}
+.rule{position:relative; height:8px; background:var(--porcelain); border:1px solid var(--hairline)}
+.rule .band{position:absolute; top:0; bottom:0; right:0; background:rgba(30,107,78,.16); border-left:1px solid var(--verdant)}
+.rule i{position:absolute; top:-4px; bottom:-4px; width:2px; background:var(--ink)}
+.todo{list-style:none; padding:0; margin:0}
+.todo li{padding:10px 14px; border-top:1px solid var(--hairline); font-size:14px}
+.todo li:first-child{border-top:0}
+.ans{padding:12px 14px; border-top:1px solid var(--hairline)}
+.ans:first-child{border-top:0}
+.ans .q{font-size:13px; color:var(--steel); margin:0 0 3px}
+.ans .q em{font-style:normal; font-family:var(--mono); font-size:9px; letter-spacing:.2em; color:var(--verdant); margin-right:6px}
+.ans .a{margin:0; font-weight:500}
+h3.sh{font-family:var(--mono); font-weight:400; font-size:10px; letter-spacing:.24em; text-transform:uppercase; color:var(--steel); margin:0 0 10px}
+.toast{position:fixed; left:50%; bottom:24px; transform:translateX(-50%); background:var(--ink); color:var(--porcelain); padding:10px 18px; font-family:var(--mono); font-size:10px; letter-spacing:.2em; text-transform:uppercase; opacity:0; transition:opacity .2s; pointer-events:none; z-index:30}
+.toast.on{opacity:1}
+</style>
+</head>
+<body>
+<main id="app"></main>
+<div class="sheet" id="sheet"><div class="panel" id="panel"></div></div>
+<div class="toast" id="toast" role="status"></div>
+<script src="/config.js"></script>
+<script>
+const C = window.ICA || { coach:{ name:"Leads", wordmark:"" }, assessment:{ drivers:{}, driverOrder:[], stages:{}, band:{ optimal:75 } }, admin:{} };
+const A = C.assessment;
+const app = document.getElementById("app");
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const SESSION = "ica-admin-session";
+let session = null, data = { coach:null, leads:[] }, view = { q:"", drift:"", stage:"" };
+try { session = JSON.parse(sessionStorage.getItem(SESSION) || "null"); } catch(e){}
+const seenKey = () => `ica-admin-seen-${(session && session.coach) || "site"}`;
+const lastSeen = () => { try { return localStorage.getItem(seenKey()) || ""; } catch(e){ return ""; } };
+const logo = () => C.coach.wordmark ? `<img src="/${esc(C.coach.wordmark)}" alt="${esc(C.coach.name)}">` : `<b>${esc(C.coach.name)}</b>`;
+
+function renderLogin(msg){
+  app.innerHTML = `<div class="login"><form class="card" id="login">
+    ${logo()}
+    <p class="eyebrow">Leads · Energy Reading</p>
+    <h1 class="disp">Sign in.</h1><p>Enter your PIN to see who has taken the reading.</p>
+    <input id="pin" type="password" inputmode="numeric" autocomplete="current-password" aria-label="PIN" placeholder="PIN">
+    <button class="btn" type="submit" id="go">Sign in</button>
+    <p class="err" id="err">${esc(msg||"")}</p>
+  </form></div>`;
+  document.getElementById("login").onsubmit = async e => {
+    e.preventDefault();
+    const pin = document.getElementById("pin").value.trim();
+    const b = document.getElementById("go"); b.disabled = true; b.textContent = "Checking";
+    const r = await api({ pin });
+    if (!r.ok){ b.disabled = false; b.textContent = "Sign in"; document.getElementById("err").textContent = r.error; return; }
+    session = { pin, coach: r.coach.slug }; sessionStorage.setItem(SESSION, JSON.stringify(session));
+    data = r; renderApp();
+  };
+}
+async function api(body){
+  try {
+    const r = await fetch("/.netlify/functions/leads", { method:"POST", headers:{ "Content-Type":"application/json" }, body: JSON.stringify(body) });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) return { ok:false, error: j.error || `Request failed (${r.status})` };
+    return Object.assign({ ok:true }, j);
+  } catch(e){ return { ok:false, error:"Couldn’t reach the server. Check your connection and try again." }; }
+}
+
+const fmt = iso => { const d = new Date(iso); return d.toLocaleDateString(undefined, { month:"short", day:"numeric" }) + " " + d.toLocaleTimeString(undefined, { hour:"numeric", minute:"2-digit" }); };
+const digits = n => String(n||"").replace(/[^\d+]/g, "");
+const first = n => String(n||"").trim().split(/\s+/)[0];
+function opener(l){
+  const d = l.drift && A.drivers[l.drift];
+  const t = d ? (C.admin.opener || "") : (C.admin.openerInRange || C.admin.opener || "");
+  return t.replace("{name}", first(l.name)).replace("{drift}", d ? d.label : "").replace("{when}", d ? d.opener : "day");
+}
+const smsHref = l => `sms:${digits(l.phone)}${/iP(hone|ad|od)/.test(navigator.userAgent) ? "&" : "?"}body=${encodeURIComponent(opener(l))}`;
+const waHref = l => `https://wa.me/${digits(l.phone).replace(/^\+/,"")}?text=${encodeURIComponent(opener(l))}`;
+const mailHref = l => `mailto:${encodeURIComponent(l.email)}?subject=${encodeURIComponent(C.admin.emailSubject || "Your reading")}&body=${encodeURIComponent(opener(l))}`;
+const filtered = () => data.leads.filter(l =>
+  (!view.drift || (l.drift || "none") === view.drift) &&
+  (!view.stage || l.stage === view.stage) &&
+  (!view.q || [l.name,l.phone,l.email,l.instagram,l.drift_label,l.stage_label].join(" ").toLowerCase().includes(view.q.toLowerCase())));
+
+function renderApp(){
+  const seen = lastSeen(), week = Date.now() - 7*864e5;
+  const newCount = data.leads.filter(l => l.created_at > seen).length;
+  const withE = data.leads.filter(l => typeof l.energy === "number");
+  const avg = withE.length ? Math.round(withE.reduce((x,l) => x + l.energy, 0) / withE.length) : "–";
+  app.innerHTML = `
+  <div class="bar"><div class="wrap">${logo()}<div style="display:flex;gap:8px"><button class="btn line" id="refresh">Refresh</button><button class="btn line" id="out">Sign out</button></div></div></div>
+  <div class="wrap">
+    <div class="stats">
+      <div class="stat"><b>${data.leads.length}</b><span>Total leads</span></div>
+      <div class="stat"><b>${data.leads.filter(l => new Date(l.created_at).getTime() > week).length}</b><span>Last 7 days</span></div>
+      <div class="stat"><b>${newCount}</b><span>New since last visit</span></div>
+      <div class="stat"><b>${avg}</b><span>Avg energy</span></div>
+    </div>
+    <div class="controls">
+      <input id="q" placeholder="Search name, number, email, handle" value="${esc(view.q)}">
+      <select id="fd"><option value="">All drifts</option>${A.driverOrder.map(k => `<option value="${k}" ${view.drift===k?"selected":""}>${esc(A.drivers[k].label)}</option>`).join("")}<option value="none" ${view.drift==="none"?"selected":""}>In range</option></select>
+      <select id="fs"><option value="">All stages</option>${Object.entries(A.stages).map(([k,s]) => `<option value="${k}" ${view.stage===k?"selected":""}>${esc(s.label)}</option>`).join("")}</select>
+      <button class="btn line" id="csv">Export CSV</button>
+    </div>
+    <div id="list"></div>
+  </div>`;
+  renderList(seen);
+  document.getElementById("q").oninput = e => { view.q = e.target.value; renderList(seen); };
+  document.getElementById("fd").onchange = e => { view.drift = e.target.value; renderList(seen); };
+  document.getElementById("fs").onchange = e => { view.stage = e.target.value; renderList(seen); };
+  document.getElementById("csv").onclick = exportCsv;
+  document.getElementById("out").onclick = () => { sessionStorage.removeItem(SESSION); session = null; renderLogin(); };
+  document.getElementById("refresh").onclick = async () => { const r = await api(session); if (r.ok){ data = r; renderApp(); toast("Updated"); } else toast(r.error); };
+  if (data.leads.length) try { localStorage.setItem(seenKey(), data.leads[0].created_at); } catch(e){}
+}
+
+function renderList(seen){
+  const rows = filtered(), el = document.getElementById("list");
+  if (!rows.length){ el.innerHTML = `<div class="list"><p class="empty">${data.leads.length ? "No leads match that filter." : "No leads yet. Share the reading link and they’ll show up here."}</p></div>`; return; }
+  el.innerHTML = `<div class="list">` + rows.map(l => `
+    <button class="lead" data-id="${l.id}">
+      <div class="top"><b>${esc(l.name)}</b><time>${fmt(l.created_at)}</time></div>
+      <div class="sub">
+        ${l.created_at > seen ? `<span class="chip new">New</span>` : ""}
+        <span class="chip ink">Energy ${l.energy ?? "–"}</span>
+        <span class="chip ${l.drift ? "" : "ok"}">${l.drift ? `${esc(l.drift_label)} drift` : "In range"}</span>
+        <span class="chip">${esc(l.stage_label || "")}</span>
+        <span class="chip">${l.channel === "whatsapp" ? "WhatsApp" : "Text"}</span>
+      </div>
+    </button>`).join("") + `</div>`;
+  el.querySelectorAll(".lead").forEach(b => b.onclick = () => openLead(b.dataset.id));
+}
+
+function openLead(id){
+  const l = data.leads.find(x => x.id === id); if (!l) return;
+  const d = l.drift && A.drivers[l.drift], st = A.stages[l.stage] || {};
+  const prefWA = l.channel === "whatsapp";
+  const meters = [["energy","Energy"]].concat(A.driverOrder.map(k => [k, A.drivers[k].label])).filter(([k]) => k === "energy" ? typeof l.energy === "number" : typeof (l.scores||{})[k] === "number")
+    .map(([k,lab]) => { const v = k === "energy" ? l.energy : l.scores[k];
+      return `<div class="meter"><div class="row"><b>${esc(lab)}</b><span>${v}/100</span></div><div class="rule"><div class="band" style="left:${A.band.optimal}%"></div><i style="left:calc(${v}% - 1px)"></i></div></div>`; }).join("");
+  const answers = (l.answers||[]).map(a => `<div class="ans"><p class="q"><em>${String(a.n).padStart(2,"0")}</em>${esc(a.question)}</p><p class="a">${esc(a.answer ?? "")}</p></div>`).join("");
+  document.getElementById("panel").innerHTML = `
+    <div class="head"><div><h2 class="disp">${esc(l.name)}</h2><p class="mono">${fmt(l.created_at)} · prefers ${prefWA ? "WhatsApp" : "text"}</p></div><button class="x" id="close" aria-label="Close">×</button></div>
+    <section>
+      <h3 class="sh">Call prep</h3>
+      <div class="plate callprep">
+        <span class="mono">Energy ${l.energy ?? "–"} · Stage ${esc(l.stage_label||"")}</span>
+        <div class="big">${d ? `${esc(d.label)} drift` : "Drivers in range"}</div>
+        <p>${esc(st.angle || "")}</p>
+        <span class="mono" style="display:block;margin-top:12px">Likely area · ${esc(d ? d.area : "Bloodwork first")}</span>
+      </div>
+      <div class="opener" id="opener">${esc(opener(l))}</div>
+      <div class="acts">
+        <a class="btn ${prefWA ? "line" : "pref"}" href="${esc(smsHref(l))}">Text</a>
+        <a class="btn ${prefWA ? "pref" : "line"}" href="${esc(waHref(l))}" target="_blank" rel="noopener">WhatsApp</a>
+        <a class="btn line" href="${esc(mailHref(l))}">Email</a>
+        <button class="btn line" id="copyop">Copy opener</button>
+      </div>
+    </section>
+    <section>
+      <h3 class="sh">Contact</h3>
+      <div class="plate kv">
+        <span class="k">Phone</span><span>${esc(l.phone || "")}</span>
+        <span class="k">Email</span><a href="mailto:${esc(l.email)}">${esc(l.email || "")}</a>
+        ${l.instagram ? `<span class="k">Instagram</span><a href="https://instagram.com/${esc(l.instagram)}" target="_blank" rel="noopener">@${esc(l.instagram)}</a>` : ""}
+        ${l.meta && l.meta.utm ? `<span class="k">Source</span><span>${esc(l.meta.utm)}</span>` : ""}
+        ${l.meta && l.meta.ref ? `<span class="k">Came from</span><span>${esc(l.meta.ref)}</span>` : ""}
+      </div>
+    </section>
+    ${meters ? `<section><h3 class="sh">Reading</h3><div class="plate">${meters}</div></section>` : ""}
+    ${(l.actions||[]).length ? `<section><h3 class="sh">What they were told to do tomorrow</h3><ol class="plate todo">${l.actions.map(a => `<li>${esc(a)}</li>`).join("")}</ol></section>` : ""}
+    <section><h3 class="sh">Every answer</h3><div class="plate">${answers}</div></section>`;
+  const sheet = document.getElementById("sheet"); sheet.classList.add("on");
+  document.getElementById("close").onclick = () => sheet.classList.remove("on");
+  sheet.onclick = e => { if (e.target === sheet) sheet.classList.remove("on"); };
+  document.getElementById("copyop").onclick = async () => { try { await navigator.clipboard.writeText(opener(l)); toast("Copied"); } catch(e){ toast("Copy not available here"); } };
+}
+
+function exportCsv(){
+  const rows = filtered(); if (!rows.length) return toast("Nothing to export");
+  const dims = A.driverOrder.length ? A.driverOrder : [...new Set(rows.flatMap(l => Object.keys(l.scores||{})))];
+  const maxQ = Math.max(...rows.map(l => (l.answers||[]).length));
+  const head = ["date","name","email","phone","channel","instagram","energy","primary_drift","stage",...dims, ...Array.from({length:maxQ},(_,i)=>`q${i+1}`),"source"];
+  const cell = v => `"${String(v ?? "").replace(/"/g,'""')}"`;
+  const out = [head.map(cell).join(",")].concat(rows.map(l => [l.created_at, l.name, l.email, l.phone, l.channel, l.instagram, l.energy, l.drift_label, l.stage_label,
+    ...dims.map(d => (l.scores||{})[d] ?? ""), ...Array.from({length:maxQ},(_,i) => ((l.answers||[])[i]||{}).answer ?? ""), (l.meta||{}).utm || ""].map(cell).join(",")));
+  const blob = new Blob(["﻿" + out.join("\n")], { type:"text/csv;charset=utf-8" });
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `${data.coach.slug}-leads-${new Date().toISOString().slice(0,10)}.csv`; a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+}
+function toast(m){ const t = document.getElementById("toast"); t.textContent = m; t.classList.add("on"); setTimeout(() => t.classList.remove("on"), 1800); }
+
+(async () => {
+  if (session){ const r = await api(session); if (r.ok){ data = r; return renderApp(); } session = null; sessionStorage.removeItem(SESSION); }
+  renderLogin();
+})();
+</script>
+</body>
+</html>
