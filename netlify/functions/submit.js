@@ -36,6 +36,8 @@ exports.handler = async (event) => {
     scores: p.scores && typeof p.scores === "object" ? p.scores : {},
     drift: str(p.drift, 40),
     drift_label: str(p.drift_label, 60),
+    result: str(p.result, 10),
+    result_label: str(p.result_label, 80),
     stage: str(p.stage, 40),
     stage_label: str(p.stage_label, 60),
     lead_extra: Object.fromEntries(Object.entries(lead).filter(([k]) => !known.includes(k)).map(([k, v]) => [k, String(v).slice(0, 200)])),

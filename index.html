@@ -174,6 +174,23 @@ h2.sh{font-size:clamp(26px,7.4vw,40px); margin:0 0 14px}
 .stations .st-k{padding:16px 0 16px 16px; border-right:1px solid var(--hairline); font-family:var(--mono); font-size:9px; letter-spacing:.2em; text-transform:uppercase; color:var(--steel); line-height:1.7}
 .stations .st-k b{display:block; color:var(--ink); font-weight:500; font-size:12px; letter-spacing:.15em}
 .stations .st-d{padding:16px; font-size:16px}
+.rid{font-family:var(--mono); font-size:10px; letter-spacing:.2em; text-transform:uppercase; color:var(--steel); margin:-6px 0 12px}
+.also{border-left:3px solid var(--ink); padding:2px 0 2px 12px; font-weight:500; margin:0 0 16px}
+p.sub{font-family:var(--mono); font-size:9px; letter-spacing:.24em; text-transform:uppercase; color:var(--verdant); margin:18px 0 8px}
+.stations .st-d small{display:block; color:var(--steel); font-size:13px; line-height:1.45; margin-top:6px}
+.measure{border:1px solid var(--hairline); background:var(--panel)}
+.measure div{padding:14px 16px; border-top:1px solid var(--hairline)}
+.measure div:first-child{border-top:0}
+.measure b{display:block; font-family:var(--mono); font-size:9px; letter-spacing:.22em; text-transform:uppercase; color:var(--steel); font-weight:400; margin-bottom:6px}
+.measure p{margin:0; font-size:15px}
+.ptab{margin-top:14px}
+.ptab .k{font-family:var(--mono); font-size:9px; letter-spacing:.22em; text-transform:uppercase; color:var(--steel); margin:0 0 8px}
+.ptab table{width:100%; border-collapse:collapse; border:1px solid var(--hairline); background:var(--panel); font-size:14px}
+.ptab th,.ptab td{border-top:1px solid var(--hairline); padding:10px 12px; text-align:left; vertical-align:top}
+.ptab th{font-family:var(--mono); font-weight:400; font-size:9px; letter-spacing:.2em; text-transform:uppercase; color:var(--steel); border-top:0}
+.ptab td:first-child{color:var(--steel); width:42%}
+.pdfline{font-size:14px; margin:0 0 10px}
+.pdfline b{font-weight:600}
 .outcome{margin-top:22px; border:1px solid var(--hairline); padding:16px; display:grid; grid-template-columns:96px 1fr; gap:0 16px}
 .outcome .t{font-family:var(--display); font-stretch:125%; font-weight:600; font-size:24px; color:var(--verdant); line-height:1}
 .outcome b{display:block; font-family:var(--display); font-stretch:125%; font-weight:600; text-transform:uppercase; font-size:13px; margin-bottom:6px}
@@ -222,7 +239,7 @@ const pad = n => String(n).padStart(2, "0");
 const nav = () => `<div class="wrap"><div class="nav">
   <a class="brand" href="${esc(C.coach.site)}" aria-label="${esc(C.coach.name)}"><img class="m" src="${esc(C.coach.mark)}" alt=""><img class="w" src="${esc(C.coach.wordmark)}" alt="${esc(C.coach.name)}"></a>
   <span class="mono">${esc(C.coach.tagline)}</span></div></div>`;
-const foot = () => `<div class="wrap"><div class="foot"><span>${esc(C.coach.site.replace(/^https?:\/\//,""))}</span><p>${esc(A.footer)}</p></div></div>`;
+const foot = extra => `<div class="wrap"><div class="foot"><span>${esc(C.coach.site.replace(/^https?:\/\//,""))}</span><p>${esc(A.footer)}${extra ? ` ${esc(extra)}` : ""}</p></div></div>`;
 const lines = arr => (Array.isArray(arr) ? arr : [arr]).map(esc).join("<br>");
 const headline = arr => { const a = Array.isArray(arr) ? arr : [arr]; return a.map((t,i) => i === a.length-1 ? esc(t.replace(/\.$/,"")) + (t.endsWith(".") ? `<span class="dot">.</span>` : "") : esc(t)).join("<br>"); };
 
@@ -320,12 +337,23 @@ function score(){
   const energy = Math.round(dims.energy === null ? drvAvg : w*dims.energy + (1-w)*drvAvg);
   const ranked = A.driverOrder.filter(k => dims[k] !== null).sort((x,y) => (dims[x]-dims[y]) || (A.driverOrder.indexOf(x)-A.driverOrder.indexOf(y)));
   const drift = ranked.length && dims[ranked[0]] < A.band.optimal ? ranked[0] : null;
+  /* Result: inside the primary drift, the lower of its two answers picks "a" or "b" (tie: "a").
+     All drivers in range: energy questions under the band give "flat", otherwise "ok". */
+  let result;
+  if (drift){
+    const qs = Q.map((q,i) => [q,i]).filter(([q]) => q.type === "scale" && q.key === drift).map(([,i]) => state.answers[i] ?? 3);
+    result = Object.assign({ driver:drift, sub: (qs[1] < qs[0]) ? "b" : "a" }, A.drivers[drift].results[(qs[1] < qs[0]) ? "b" : "a"]);
+  } else {
+    const sub = (dims.energy !== null && dims.energy < A.band.optimal) ? "flat" : "ok";
+    result = Object.assign({ driver:null, sub }, A.inRange[sub]);
+  }
+  const alsoOut = ranked.filter(k => k !== drift && dims[k] < A.band.drifting);
   /* Stage: what they've tried decides; "labs normal" lifts guessing to plateaued. */
   let stage = tags.tried || "starting";
   if (tags.labs === "plateaued" && stage === "guessing") stage = "plateaued";
-  return { dims, energy, drift, ranked, stage, picks };
+  return { dims, energy, drift, ranked, stage, picks, result, alsoOut };
 }
-function actionsFor(s){ return (s.drift ? A.drivers[s.drift] : A.inRange).actions; }
+function actionsFor(s){ return s.result.actions; }
 
 function readableAnswers(){
   return Q.map((q,i) => ({ n:i+1, part:q.part, question:q.q, answer: state.answers[i] === undefined ? null : q.type === "scenario" ? q.opts[state.answers[i]][0] : state.answers[i] }));
@@ -381,9 +409,10 @@ async function submit(data){
     coach: C.coach.slug, assessment: A.id, assessment_title: A.title,
     lead: data,
     energy: s.energy, scores: s.dims, drift: s.drift, drift_label: D ? D.label : "In range",
+    result: s.result.id, result_label: s.result.name,
     stage: s.stage, stage_label: A.stages[s.stage].label,
     answers: readableAnswers(),
-    actions: actionsFor(s).map(a => a[1]),
+    actions: actionsFor(s).map(a => `${a[0]}: ${a[1]}`),
     meta: { ref: document.referrer || "", ua: navigator.userAgent, page: location.href, utm: location.search.replace(/^\?/,"") }
   };
   try {
@@ -410,7 +439,7 @@ function embed(url){
   return url;
 }
 function bookingNotes(s){
-  const parts = [`Energy reading ${s.energy}/100`, s.drift ? `primary drift ${A.drivers[s.drift].label}` : "drivers in range", `stage ${A.stages[s.stage].label}`];
+  const parts = [`Energy reading ${s.energy}/100`, `${s.result.id} ${s.result.name}`, s.drift ? `primary drift ${A.drivers[s.drift].label}` : "drivers in range", `stage ${A.stages[s.stage].label}`];
   return parts.join(", ");
 }
 function bookUrl(L, s){
@@ -421,7 +450,9 @@ function renderResults(){
   retryPending();
   const s = score(), L = lead(), D = s.drift ? A.drivers[s.drift] : null, S = A.stages[s.stage];
   const [ecls, elab] = status(s.energy);
-  const block = D || A.inRange;
+  const block = s.result, PT = A.panelTable;
+  const showPanel = block.measureTable || s.stage === "plateaued";
+  const panel = showPanel ? `<div class="ptab"><p class="k">${esc(PT.title)}</p><table><tr><th>${esc(PT.head[0])}</th><th>${esc(PT.head[1])}</th></tr>${PT.rows.map(r => `<tr><td>${esc(r[0])}</td><td>${esc(r[1])}</td></tr>`).join("")}</table></div>` : "";
   const video = embed(C.video && C.video.url);
   app.innerHTML = `${nav()}
   <div class="wrap">
@@ -430,10 +461,9 @@ function renderResults(){
       ${L.name ? `<p class="hello">${esc(R.hello.replace("{name}", L.name))}</p>` : ""}
       <div class="readout">
         <div><b>${esc(R.energyKey)}</b><span class="big">${s.energy}<small>/100</small></span></div>
-        <div><b>Status</b><span class="st ${ecls}">${esc(elab)}</span><b style="margin-top:12px">Primary drift</b><span class="st">${esc(D ? D.label : "None")}</span></div>
+        <div><b>Status</b><span class="st ${ecls}">${esc(elab)}</span><b style="margin-top:12px">Primary drift</b><span class="st">${esc(D ? D.label : block.driftLabel)}</span></div>
       </div>
       ${scale([{ v:s.energy, from: s.energy < 50 ? 92 : 8 }], { aria:`Energy ${s.energy} out of 100. Optimal band starts at ${A.band.optimal}.` })}
-      <div class="stage"><b>Stage · ${esc(S.label)}</b>${esc(S.line)}</div>
     </section>
 
     <section class="sec">
@@ -443,14 +473,16 @@ function renderResults(){
           return `<div class="drv ${k===s.drift?"drift":""}"><div class="row"><b><em>${esc(d.code)}</em>${esc(d.label)}</b><span class="${c}">${v} · ${esc(l)}</span></div>
             ${scale([{ v, from: idx % 2 ? 96 : 4 }], { sm:true, labels:false, aria:`${d.label} ${v} out of 100` })}</div>`; }).join("")}
       </div>
-      <div class="legend"><span style="left:0">0</span><span style="left:50%">50</span><span style="left:${A.band.optimal}%; transform:none">${A.band.optimal} ▸ Optimal</span><span style="left:100%">100</span></div>
+      <div class="legend"><span style="left:0">0</span><span style="left:50%">50</span><span style="left:${A.band.optimal}%; transform:none">${A.band.optimal}</span><span style="left:100%">100</span></div>
     </section>
 
     <section class="sec">
-      <p class="eyebrow">${esc(R.driftCode)}${D ? ` · ${esc(D.label)}` : ""}</p>
+      <p class="eyebrow">${D ? `${esc(R.driftCode)} · ${esc(D.label)}` : "CAL-02 · IN RANGE"}</p>
+      <p class="rid">${esc(block.id)} · ${esc(block.name)}</p>
       <h2 class="disp sh">${headline(block.headline)}</h2>
-      <p class="body">${esc(block.body)}</p>
-      ${D ? `<p class="body muted">${esc(D.start)}</p>` : ""}
+      ${s.alsoOut.length ? `<p class="also">${esc(R.alsoOut.replace("{list}", s.alsoOut.map(k => A.drivers[k].label).join(" and ")))}</p>` : ""}
+      <p class="sub">${esc(R.happeningCode)}</p>
+      ${block.happening.map(t => `<p class="body">${esc(t)}</p>`).join("")}
     </section>
 
     ${video ? `<section class="sec"><p class="eyebrow">FIG. 02 · ${esc(C.video.title)}</p><div class="video"><iframe src="${esc(video)}" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen title="${esc(C.video.title)}"></iframe></div></section>` : ""}
@@ -458,8 +490,15 @@ function renderResults(){
     <section class="sec">
       <p class="eyebrow">${esc(R.actionsCode)}<span class="rule"></span><span class="note">${esc(R.actionsNote)}</span></p>
       <h2 class="disp sh">${headline(R.actionsTitle)}</h2>
-      <ol class="stations">${actionsFor(s).map(([t,a],k) => `<li><div class="st-k">Station<b>${pad(k+1)}</b>${esc(t)}</div><div class="st-d">${esc(a)}</div></li>`).join("")}</ol>
-      <div class="outcome"><div class="k">${esc(R.outcomeCode)}</div><div class="t">${esc(block.outcome[0])}</div><div><b>${esc(block.outcome[1])}</b><p>${esc(block.outcome[2])}</p></div></div>
+      <ol class="stations">${actionsFor(s).map(([t,a,why],k) => `<li><div class="st-k">Station<b>${pad(k+1)}</b>${esc(t)}</div><div class="st-d">${esc(a)}${why ? `<small>${esc(why)}</small>` : ""}</div></li>`).join("")}</ol>
+    </section>
+
+    <section class="sec">
+      <p class="eyebrow">${esc(R.measureCode)}</p>
+      ${block.measure ? `<div class="measure"><div><p>${esc(block.measure.home)}</p></div><div><p>${esc(block.measure.panel)}</p></div></div>` : ""}
+      ${panel}
+      <div class="stage"><b>Stage · ${esc(S.label)}</b>${esc(S.line)}</div>
+      <div class="outcome"><div class="k">${esc(R.outcomeCode)}</div><div class="t">${esc(block.outcome[0] || "\u2713")}</div><div><b>${esc(block.outcome[1])}</b><p>${esc(block.outcome[2])}</p></div></div>
     </section>
 
     <section class="close" id="book">
@@ -472,17 +511,17 @@ function renderResults(){
       <p class="booknote">${esc(R.bookNote)}</p>
     </section>
 
-    ${C.download && C.download.url ? `<section class="sec"><div class="plate dl"><p class="k">${esc(C.download.code)}</p><b>${esc(C.download.title)}</b><p class="muted">${esc(C.download.body)}</p><a class="btn line block" href="${esc(C.download.url)}" target="_blank" rel="noopener" download>${esc(C.download.button)}</a></div></section>` : ""}
+    ${C.download && C.download.url ? `<section class="sec">${block.pdf ? `<p class="pdfline"><b>${esc(R.pdfLead)}</b> ${esc(block.pdf)}</p>` : ""}<div class="plate dl"><p class="k">${esc(C.download.code)}</p><b>${esc(C.download.title)}</b><p class="muted">${esc(C.download.body)}</p><a class="btn line block" href="${esc(C.download.url)}" target="_blank" rel="noopener" download>${esc(C.download.button)}</a></div></section>` : ""}
 
     <div class="tools"><button class="btn line" id="copy">${esc(R.copy)}</button><button class="btn line" id="again">${esc(R.retake)}</button></div>
-  </div>${foot()}`;
+  </div>${foot(A.footerResults)}`;
   settle();
   loadCal(L, s);
   document.getElementById("again").onclick = () => { state = { step:0, answers:{}, submitted:false }; save(); render(); };
   document.getElementById("copy").onclick = async () => {
     const text = `My CalibreX energy reading: ${s.energy}/100 (${elab}).\n` +
       A.driverOrder.map(k => `${A.drivers[k].label} ${s.dims[k]}`).join(", ") +
-      `\nPrimary drift: ${D ? D.label : "none"}.\n\nTomorrow:\n` + actionsFor(s).map((a,k) => `${k+1}. ${a[1]}`).join("\n");
+      `\nPrimary drift: ${D ? D.label : block.driftLabel.toLowerCase()}. ${block.name}.\n\nTomorrow:\n` + actionsFor(s).map((a,k) => `${k+1}. ${a[0]}: ${a[1]}`).join("\n");
     try { await navigator.clipboard.writeText(text); toast("Copied"); }
     catch(e){ const t = document.createElement("textarea"); t.value = text; document.body.appendChild(t); t.select(); try { document.execCommand("copy"); toast("Copied"); } catch(_){ toast("Copy not available here"); } t.remove(); }
   };

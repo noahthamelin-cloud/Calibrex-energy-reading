@@ -155,10 +155,15 @@ async function api(body){
 const fmt = iso => { const d = new Date(iso); return d.toLocaleDateString(undefined, { month:"short", day:"numeric" }) + " " + d.toLocaleTimeString(undefined, { hour:"numeric", minute:"2-digit" }); };
 const digits = n => String(n||"").replace(/[^\d+]/g, "");
 const first = n => String(n||"").trim().split(/\s+/)[0];
+/* Every result in config.js, by its id (01A ... 06B). */
+const RESULTS = {};
+A.driverOrder.forEach(k => Object.values((A.drivers[k] || {}).results || {}).forEach(r => RESULTS[r.id] = Object.assign({ area: A.drivers[k].area }, r)));
+Object.values(A.inRange || {}).forEach(r => { if (r && r.id) RESULTS[r.id] = r; });
+const resultOf = l => RESULTS[l.result] || null;
 function opener(l){
-  const d = l.drift && A.drivers[l.drift];
-  const t = d ? (C.admin.opener || "") : (C.admin.openerInRange || C.admin.opener || "");
-  return t.replace("{name}", first(l.name)).replace("{drift}", d ? d.label : "").replace("{when}", d ? d.opener : "day");
+  const r = resultOf(l);
+  const start = (C.admin.openerStart || "").replace("{name}", first(l.name));
+  return r ? `${start} ${r.opener}` : start;
 }
 const smsHref = l => `sms:${digits(l.phone)}${/iP(hone|ad|od)/.test(navigator.userAgent) ? "&" : "?"}body=${encodeURIComponent(opener(l))}`;
 const waHref = l => `https://wa.me/${digits(l.phone).replace(/^\+/,"")}?text=${encodeURIComponent(opener(l))}`;
@@ -166,7 +171,7 @@ const mailHref = l => `mailto:${encodeURIComponent(l.email)}?subject=${encodeURI
 const filtered = () => data.leads.filter(l =>
   (!view.drift || (l.drift || "none") === view.drift) &&
   (!view.stage || l.stage === view.stage) &&
-  (!view.q || [l.name,l.phone,l.email,l.instagram,l.drift_label,l.stage_label].join(" ").toLowerCase().includes(view.q.toLowerCase())));
+  (!view.q || [l.name,l.phone,l.email,l.instagram,l.drift_label,l.stage_label,l.result,l.result_label].join(" ").toLowerCase().includes(view.q.toLowerCase())));
 
 function renderApp(){
   const seen = lastSeen(), week = Date.now() - 7*864e5;
@@ -209,7 +214,7 @@ function renderList(seen){
       <div class="sub">
         ${l.created_at > seen ? `<span class="chip new">New</span>` : ""}
         <span class="chip ink">Energy ${l.energy ?? "–"}</span>
-        <span class="chip ${l.drift ? "" : "ok"}">${l.drift ? `${esc(l.drift_label)} drift` : "In range"}</span>
+        <span class="chip ${l.drift ? "" : "ok"}">${l.result ? `${esc(l.result)} · ${esc(l.result_label)}` : l.drift ? `${esc(l.drift_label)} drift` : "In range"}</span>
         <span class="chip">${esc(l.stage_label || "")}</span>
         <span class="chip">${l.channel === "whatsapp" ? "WhatsApp" : "Text"}</span>
       </div>
@@ -219,7 +224,7 @@ function renderList(seen){
 
 function openLead(id){
   const l = data.leads.find(x => x.id === id); if (!l) return;
-  const d = l.drift && A.drivers[l.drift], st = A.stages[l.stage] || {};
+  const d = l.drift && A.drivers[l.drift], st = A.stages[l.stage] || {}, r = resultOf(l);
   const prefWA = l.channel === "whatsapp";
   const meters = [["energy","Energy"]].concat(A.driverOrder.map(k => [k, A.drivers[k].label])).filter(([k]) => k === "energy" ? typeof l.energy === "number" : typeof (l.scores||{})[k] === "number")
     .map(([k,lab]) => { const v = k === "energy" ? l.energy : l.scores[k];
@@ -231,9 +236,10 @@ function openLead(id){
       <h3 class="sh">Call prep</h3>
       <div class="plate callprep">
         <span class="mono">Energy ${l.energy ?? "–"} · Stage ${esc(l.stage_label||"")}</span>
-        <div class="big">${d ? `${esc(d.label)} drift` : "Drivers in range"}</div>
-        <p>${esc(st.angle || "")}</p>
-        <span class="mono" style="display:block;margin-top:12px">Likely area · ${esc(d ? d.area : "Bloodwork first")}</span>
+        <div class="big">${r ? `${esc(r.id)} · ${esc(r.name)}` : d ? `${esc(d.label)} drift` : "Drivers in range"}</div>
+        ${r && r.call ? `<p><b>Ask:</b> ${esc(r.call)}</p>` : ""}
+        <p><b>Stage:</b> ${esc(st.angle || "")}</p>
+        <span class="mono" style="display:block;margin-top:12px">Likely area · ${esc(r ? r.area : d ? d.area : "Bloodwork first")}</span>
       </div>
       <div class="opener" id="opener">${esc(opener(l))}</div>
       <div class="acts">
@@ -254,7 +260,7 @@ function openLead(id){
       </div>
     </section>
     ${meters ? `<section><h3 class="sh">Reading</h3><div class="plate">${meters}</div></section>` : ""}
-    ${(l.actions||[]).length ? `<section><h3 class="sh">What they were told to do tomorrow</h3><ol class="plate todo">${l.actions.map(a => `<li>${esc(a)}</li>`).join("")}</ol></section>` : ""}
+    ${(l.actions||[]).length ? `<section><h3 class="sh">What they were told to do</h3><ol class="plate todo">${l.actions.map(a => `<li>${esc(a)}</li>`).join("")}</ol></section>` : ""}
     <section><h3 class="sh">Every answer</h3><div class="plate">${answers}</div></section>`;
   const sheet = document.getElementById("sheet"); sheet.classList.add("on");
   document.getElementById("close").onclick = () => sheet.classList.remove("on");
@@ -266,9 +272,9 @@ function exportCsv(){
   const rows = filtered(); if (!rows.length) return toast("Nothing to export");
   const dims = A.driverOrder.length ? A.driverOrder : [...new Set(rows.flatMap(l => Object.keys(l.scores||{})))];
   const maxQ = Math.max(...rows.map(l => (l.answers||[]).length));
-  const head = ["date","name","email","phone","channel","instagram","energy","primary_drift","stage",...dims, ...Array.from({length:maxQ},(_,i)=>`q${i+1}`),"source"];
+  const head = ["date","name","email","phone","channel","instagram","energy","primary_drift","result","stage",...dims, ...Array.from({length:maxQ},(_,i)=>`q${i+1}`),"source"];
   const cell = v => `"${String(v ?? "").replace(/"/g,'""')}"`;
-  const out = [head.map(cell).join(",")].concat(rows.map(l => [l.created_at, l.name, l.email, l.phone, l.channel, l.instagram, l.energy, l.drift_label, l.stage_label,
+  const out = [head.map(cell).join(",")].concat(rows.map(l => [l.created_at, l.name, l.email, l.phone, l.channel, l.instagram, l.energy, l.drift_label, l.result ? `${l.result} ${l.result_label}` : "", l.stage_label,
     ...dims.map(d => (l.scores||{})[d] ?? ""), ...Array.from({length:maxQ},(_,i) => ((l.answers||[])[i]||{}).answer ?? ""), (l.meta||{}).utm || ""].map(cell).join(",")));
   const blob = new Blob(["﻿" + out.join("\n")], { type:"text/csv;charset=utf-8" });
   const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `${data.coach.slug}-leads-${new Date().toISOString().slice(0,10)}.csv`; a.click();
