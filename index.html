@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>The Energy Reading · CalibreX</title>
 <meta name="description" content="Fifteen questions. A reading of your energy and the five drivers behind it, measured against the optimal band.">
-<meta name="theme-color" content="#EEF1EF">
+<meta name="theme-color" content="#F7F7F2">
 <link rel="icon" href="assets/brand/logo.svg" type="image/svg+xml">
 <link rel="stylesheet" href="assets/fonts/fonts.css">
 <style>
@@ -196,8 +196,10 @@ p.sub{font-family:var(--mono); font-size:9px; letter-spacing:.24em; text-transfo
 .outcome b{display:block; font-family:var(--display); font-stretch:125%; font-weight:600; text-transform:uppercase; font-size:13px; margin-bottom:6px}
 .outcome p{margin:0; color:var(--steel); font-size:14px}
 .outcome .k{grid-column:1/-1; font-family:var(--mono); font-size:8px; letter-spacing:.24em; text-transform:uppercase; color:var(--steel); margin-bottom:12px}
-.video{position:relative; padding-top:56.25%; background:var(--carbon); border:1px solid var(--hairline)}
+/* Portrait (9:16) players for Etienne's phone-shot videos. Capped so the whole player fits on a phone screen. */
+.video{position:relative; width:100%; max-width:min(380px, calc(74vh * 0.5625)); aspect-ratio:9/16; margin:0 auto; background:var(--carbon); border:1px solid var(--hairline)}
 .video iframe{position:absolute; inset:0; width:100%; height:100%; border:0}
+.vcap{font-family:var(--mono); font-size:9px; letter-spacing:.22em; text-transform:uppercase; color:var(--steel); text-align:center; margin:10px 0 0}
 .close{margin-top:44px; border-top:1px solid var(--ink); padding:36px 0 8px}
 .plate{border:1px solid var(--hairline); background:var(--panel); padding:16px; margin:20px 0}
 .plate .k{font-family:var(--mono); font-size:8px; letter-spacing:.24em; text-transform:uppercase; color:var(--steel); margin:0 0 8px}
@@ -212,6 +214,106 @@ p.sub{font-family:var(--mono); font-size:9px; letter-spacing:.24em; text-transfo
 .toast{position:fixed; left:50%; bottom:calc(24px + env(safe-area-inset-bottom,0px)); transform:translateX(-50%); background:var(--ink); color:var(--porcelain); padding:10px 18px; font-family:var(--mono); font-size:10px; letter-spacing:.2em; text-transform:uppercase; opacity:0; transition:opacity .2s; pointer-events:none; z-index:20}
 .toast.on{opacity:1}
 @media (prefers-reduced-motion: reduce){ .scale .needle,.track i{transition:none} }
+/* ---- Causes list and decision tree. Copy this block into index.html. Uses the engine's existing tokens. ---- */
+.cz-intro{color:var(--steel);font-size:15px;margin:0 0 14px}
+.cz{border-top:1px solid var(--hairline)}
+.cz details{border-bottom:1px solid var(--hairline)}
+.cz summary{list-style:none;cursor:pointer;display:grid;grid-template-columns:28px minmax(0,1fr) 16px;gap:10px;padding:13px 0;align-items:start}
+.cz summary::-webkit-details-marker{display:none}
+.cz .l{font-family:var(--mono);font-size:11px;width:24px;height:24px;display:flex;align-items:center;justify-content:center;border:1px solid var(--ink);color:var(--ink);background:var(--panel)}
+.cz details[open]{background:#fff}
+.cz details[open] .l{background:var(--deep);border-color:var(--deep);color:#fff}
+.cz summary{padding-left:8px;padding-right:8px}
+.cz .n{font-weight:600;font-size:16px;line-height:1.3}
+.cz .tell{display:block;font-weight:400;font-size:14px;color:var(--steel);margin-top:3px}
+.cz .tell b{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--verdant);font-weight:500;margin-right:6px}
+.cz .x{font-family:var(--mono);color:var(--steel);font-size:14px;line-height:24px}
+.cz details[open] .x{transform:rotate(45deg)}
+.cz .in{padding:0 12px 14px 46px}
+.cz .in p{margin:0 0 8px;font-size:14.5px}
+.cz .in .k{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--steel);margin:10px 0 4px}
+.cz .in ul{margin:0;padding-left:18px;font-size:14.5px} .cz .in li{margin-bottom:4px}
+.tr{margin-top:6px}
+.tr .tier{display:flex;align-items:baseline;gap:10px;margin:22px 0 0;padding:8px 10px;background:var(--ink);color:#fff}
+.tr .tier b{font-family:var(--display);font-stretch:125%;font-weight:600;text-transform:uppercase;font-size:15px}
+.tr .tier span{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;opacity:.75}
+.tr .tier.now{background:var(--plate);color:var(--ink)}
+.tr .tier.home{background:var(--mint);color:var(--ink)}
+.tr .tier.panel{background:var(--deep);color:#fff}
+.tr .nodes{border-left:2px solid var(--ink);margin-left:11px;padding:4px 0 2px}
+.tr .node{position:relative;padding:14px 0 4px 20px}
+.tr .node::before{content:"";position:absolute;left:-6px;top:20px;width:10px;height:10px;background:var(--porcelain);border:2px solid var(--ink)}
+.tr .q{font-weight:600;font-size:16px;line-height:1.3;margin:0}
+.tr .q em{font-style:normal;font-family:var(--mono);font-size:10px;letter-spacing:.14em;color:var(--steel);margin-right:8px}
+.tr .how{font-size:14px;color:var(--steel);margin:4px 0 0}
+.tr .outs{margin:8px 0 0;padding:0;list-style:none}
+.tr .outs li{position:relative;display:grid;grid-template-columns:minmax(0,38%) minmax(0,1fr);gap:10px;padding:8px 0 8px 18px;border-top:1px dashed var(--hairline);font-size:14.5px}
+.tr .outs li::before{content:"";position:absolute;left:0;top:18px;width:12px;height:1px;background:var(--ink)}
+.tr .a{font-family:var(--mono);font-size:12px;line-height:1.45;color:var(--ink)}
+.tr .m .go{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px}
+.tr .go span{font-family:var(--mono);font-size:10px;letter-spacing:.06em;border:1px solid var(--verdant);color:var(--verdant);padding:2px 6px;background:var(--panel)}
+.tr .go span.next{border-color:var(--hairline);color:var(--steel)}
+@media (max-width:480px){ .tr .outs li{grid-template-columns:minmax(0,1fr)} .tr .a{font-weight:500} }
+.flags{font-size:13.5px;color:var(--ink);background:var(--cream);padding:12px 14px;margin-top:16px}
+/* closing score block */
+.recap{background:var(--plate);color:var(--ink);padding:20px 18px;margin-top:30px}
+.recap .k{font-family:var(--mono);font-size:10px;letter-spacing:.22em;text-transform:uppercase;margin:0 0 6px}
+.recap .big{font-family:var(--display);font-stretch:125%;font-weight:600;font-size:clamp(64px,18vw,104px);line-height:.9;font-variant-numeric:tabular-nums}
+.recap .big small{font-size:.28em;margin-left:6px}
+.recap .row{display:flex;flex-wrap:wrap;gap:6px;margin:14px 0 12px}
+.recap .row span{font-family:var(--mono);font-size:11px;background:#fff;padding:5px 8px}
+.recap .row span.low{background:var(--ink);color:#fff}
+.recap p{margin:0;font-size:14.5px;max-width:46ch}
+
+/* ---- Bright tone (Etienne's brief, Nov 25 2026): the subscription page palette, in full-width blocks.
+   Square corners, no gradients, no shadows. No brown or clay, no light green text on dark green,
+   and the score never sits on a green card: the score plate is lemon. ---- */
+:root{ --ground:#F7F7F2; --plate:#F7DF6E; --mint:#D9F2E3; --cream:#FBF3C9; --deep:#1E6B4E; --porcelain:#F7F7F2; --panel:#FFFFFF; }
+body{background:var(--ground)}
+section.sec{padding:22px 0 0; margin-top:40px; border-top:2px solid var(--ink)}
+section.sec:first-child{border-top:0; margin-top:0; padding-top:36px}
+.eyebrow .rule{display:none}
+.readout{background:var(--plate); border:0}
+.readout div{border-left-color:rgba(23,29,26,.18)}
+.readout b{color:var(--ink); opacity:.7}
+.readout .st.in-range{color:var(--ink)}
+.scale .band{background:var(--mint)}
+.scale .needle{background:var(--ink)}
+.drivers{border:0; background:transparent; display:grid; gap:6px}
+.drv{border:0; background:#fff}
+.drv.in{background:var(--mint)}
+.drv.drift{background:var(--plate); box-shadow:none}
+.drv .row span.in-range{color:var(--ink)}
+.track{background:var(--mint)}
+.track i{background:var(--signal)}
+.steps button[aria-pressed="true"]{background:var(--deep); color:#fff}
+.stage{background:var(--cream); border-left:3px solid var(--ink); padding:12px 14px}
+.outcome{background:var(--mint); border:0}
+.outcome .t{color:var(--deep)}
+.also{background:#fff}
+.ptab table{background:#fff}
+.stations{background:#fff}
+.dl.plate{background:var(--cream); border:0}
+.recap .scale{margin:6px 0 4px}
+.recap .scale .labels span{background:var(--plate)}
+.recap .scale .band{background:rgba(255,255,255,.55)}
+.close{background:var(--deep); color:#fff; border:0; margin-top:44px; padding:40px 0 32px}
+.close .eyebrow{color:#fff}
+.close .eyebrow::before{background:#fff}
+.close .disp .dot{color:#fff}
+.close .body{color:#fff}
+.close .plate{background:#fff; color:var(--ink); border:0}
+.close .plate .k{color:var(--steel)}
+.close .cal{border:0}
+.close .btn{background:#fff; color:var(--ink)}
+.close .btn:hover{background:var(--plate)}
+.close .booknote,.close .vcap{color:#fff; opacity:.85}
+.close .video{border-color:rgba(255,255,255,.4)}
+.cz details{background:#fff}
+.tr .node::before{background:var(--ground)}
+.tr .go span{cursor:pointer}
+.tr .go span:hover,.tr .go span:focus-visible{background:var(--deep); color:#fff; border-color:var(--deep)}
+.flags{border-left:3px solid var(--ink)}
 </style>
 </head>
 <body>
@@ -230,6 +332,72 @@ const KEY = `ica-${C.coach.slug}-${A.id}-v1`, LEAD_KEY = `ica-lead-${C.coach.slu
 let state = { step:-1, answers:{}, submitted:false };
 try { const s = JSON.parse(localStorage.getItem(KEY) || "null"); if (s && s.answers) state = s; } catch(e){}
 const save = () => { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch(e){} };
+
+/* ---------- Anonymous funnel tracking ----------
+   Sends step names only (never names, emails or numbers) to /.netlify/functions/track, read by the Funnel tab in /admin.
+   A visit is one session: a new one starts after 30 minutes idle. Browsers signed in to /admin, or opened once
+   with ?notrack=1, are left out so testing doesn't count. */
+const T = (() => {
+  const rid = () => ((window.crypto && crypto.randomUUID) ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2)).replace(/[^\w-]/g, "").slice(0, 32);
+  let off = false, vid = "", sess = null;
+  try {
+    if (/[?&]notrack=1\b/.test(location.search)) localStorage.setItem("ica-notrack", "1");
+    if (/[?&]notrack=0\b/.test(location.search)) localStorage.removeItem("ica-notrack");
+    off = localStorage.getItem("ica-notrack") === "1";
+    vid = localStorage.getItem("ica-vid") || rid(); localStorage.setItem("ica-vid", vid);
+    sess = JSON.parse(sessionStorage.getItem("ica-sess") || "null");
+  } catch(e){}
+  if (!vid) vid = rid();
+  if (!sess || Date.now() - sess.at > 30 * 60e3) {
+    const q = new URLSearchParams(location.search), ref = (() => { try { return new URL(document.referrer).hostname.replace(/^www\.|^l\.|^lm\.|^m\./, ""); } catch(e){ return ""; } })();
+    const src = (q.get("utm_source") || q.get("src") || (ref && ref !== location.hostname ? ref.split(".")[0] : "") || "direct").toLowerCase().slice(0, 40);
+    sess = { sid: rid(), day: new Date().toISOString().slice(0, 10), src, seen: {} };
+  }
+  const dev = matchMedia("(max-width: 767px)").matches ? "mobile" : "desktop";
+  let queue = [];
+  const keep = () => { sess.at = Date.now(); try { sessionStorage.setItem("ica-sess", JSON.stringify(sess)); } catch(e){} };
+  function flush(){
+    if (off || !queue.length) return;
+    const body = JSON.stringify({ coach: C.coach.slug, sid: sess.sid, vid, day: sess.day, src: sess.src, dev, ev: queue }); queue = [];
+    try { if (navigator.sendBeacon && navigator.sendBeacon("/.netlify/functions/track", new Blob([body], { type: "text/plain" }))) return; } catch(e){}
+    try { fetch("/.netlify/functions/track", { method: "POST", body, keepalive: true }); } catch(e){}
+  }
+  /* Most steps count once per visit; "q", cause opens and chip taps are always sent. */
+  function step(e, extra, now){
+    if (off) return;
+    const repeat = e === "q" || e === "cause_open" || e === "chip_click";
+    const id = e === "q" ? "q" + extra.n : e;
+    if (!repeat && sess.seen[id]) return;
+    if (e === "q" && sess.seen[id]) return;
+    sess.seen[id] = 1; keep();
+    queue.push(Object.assign({ e, t: new Date().toISOString() }, extra || {}));
+    if (now || queue.length >= 8) flush();
+  }
+  addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") flush(); });
+  addEventListener("pagehide", flush);
+  /* One-shot "seen" steps for blocks that scroll into view. */
+  function whenSeen(el, e){
+    if (!el || off) return;
+    if (!("IntersectionObserver" in window)) return step(e);
+    const io = new IntersectionObserver(es => es.forEach(x => { if (x.isIntersecting){ step(e); io.disconnect(); } }), { threshold: .35 });
+    io.observe(el);
+  }
+  /* YouTube plays: ask each player to report its state and count the first play. */
+  const players = new Map();
+  addEventListener("message", m => {
+    if (!/youtube(-nocookie)?\.com$/.test((() => { try { return new URL(m.origin).hostname; } catch(e){ return ""; } })())) return;
+    let d; try { d = typeof m.data === "string" ? JSON.parse(m.data) : m.data; } catch(e){ return; }
+    const ev = players.get(m.source);
+    const st = d && (d.event === "onStateChange" ? d.info : d.info && d.info.playerState);
+    if (ev && st === 1) { step(ev, null, true); players.delete(m.source); }
+  });
+  function watchVideo(iframe, e){
+    if (!iframe || off) return;
+    const hello = () => { players.set(iframe.contentWindow, e); try { iframe.contentWindow.postMessage(JSON.stringify({ event: "listening", id: e, channel: "widget" }), "*"); } catch(_){} };
+    iframe.addEventListener("load", () => { hello(); setTimeout(hello, 1500); });
+  }
+  return { step, flush, whenSeen, watchVideo, off: () => off };
+})();
 const lead = () => { try { return JSON.parse(localStorage.getItem(LEAD_KEY) || "null") || {}; } catch(e){ return {}; } };
 const saveLead = l => { try { localStorage.setItem(LEAD_KEY, JSON.stringify(l)); } catch(e){} };
 const Q = A.questions, N = Q.length;          // steps: -1 intro, 0..N-1 questions, N gate, N+1 results
@@ -249,11 +417,11 @@ function scale(needles, opts = {}){
   const labels = opts.labels === false ? "" : `<div class="labels">${[0,25,50,75,100].map(x => `<span style="left:${x}%">${x}</span>`).join("")}</div>`;
   return `<div class="scale ${opts.sm ? "sm" : ""}" role="img" aria-label="${esc(opts.aria || "")}">
     <div class="ruler"><div class="band" style="left:${b}%; right:0"></div>
-    ${needles.map(n => `<div class="needle ${n.ghost ? "ghost" : ""}" data-v="${n.v}" style="--from:${n.from ?? 50}%"></div>`).join("")}</div>${labels}</div>`;
+    ${needles.map(n => `<div class="needle ${n.ghost ? "ghost" : ""} ${n.later ? "later" : ""}" data-v="${n.v}" style="--from:${n.from ?? 50}%"></div>`).join("")}</div>${labels}</div>`;
 }
 function settle(){
   const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
-  requestAnimationFrame(() => setTimeout(() => app.querySelectorAll(".needle").forEach(n => n.style.left = n.dataset.v + "%"), reduce ? 0 : 120));
+  requestAnimationFrame(() => setTimeout(() => app.querySelectorAll(".needle:not(.later)").forEach(n => n.style.left = n.dataset.v + "%"), reduce ? 0 : 120));
 }
 function status(v){
   if (v === null || v === undefined) return ["", ""];
@@ -285,7 +453,9 @@ function renderIntro(){
     <p class="fine">${esc(A.privacy)}</p>
   </div></main>${foot()}</div>`;
   settle();
+  T.step("land");
   document.getElementById("start").onclick = () => {
+    if (!done) T.step("start");
     if (done) state.step = N+1; else if (resume) state.step = firstUnanswered(); else { state = { step:0, answers:{}, submitted:false }; }
     save(); render();
   };
@@ -314,6 +484,7 @@ function renderQuestion(){
   document.getElementById("back").onclick = () => { state.step = i-1; save(); render(); };
   app.querySelectorAll(".opt,.opt-s").forEach(b => b.onclick = () => {
     state.answers[i] = Number(b.dataset.v); save();
+    T.step("q", { n: i + 1 });
     b.parentElement.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", x===b));
     setTimeout(() => { state.step = i+1; save(); render(); }, 220);
   });
@@ -347,7 +518,7 @@ function score(){
     const sub = (dims.energy !== null && dims.energy < A.band.optimal) ? "flat" : "ok";
     result = Object.assign({ driver:null, sub }, A.inRange[sub]);
   }
-  const alsoOut = ranked.filter(k => k !== drift && dims[k] < A.band.drifting);
+  const alsoOut = ranked.filter(k => k !== drift && dims[k] < A.band.optimal);
   /* Stage: what they've tried decides; "labs normal" lifts guessing to plateaued. */
   let stage = tags.tried || "starting";
   if (tags.labs === "plateaued" && stage === "guessing") stage = "plateaued";
@@ -361,6 +532,7 @@ function readableAnswers(){
 
 /* ---------- capture ---------- */
 function renderGate(){
+  T.step("gate_view");
   const G = C.gate, L = lead();
   app.innerHTML = `<div class="top"><div class="wrap"><div class="topbar"><button class="back" id="back">← Back</button><span class="mono">All ${N} answered</span></div></div><div class="track"><i style="width:100%"></i></div></div>
   <div class="wrap gate">
@@ -397,6 +569,7 @@ function renderGate(){
     });
     if (!ok){ const first = app.querySelector(".field.bad"); if (first) first.scrollIntoView({ block:"center", behavior:"smooth" }); return; }
     saveLead(data);
+    T.step("gate_submit", null, true);
     const btn = document.getElementById("go"); btn.disabled = true; btn.textContent = "One moment";
     await submit(data);
     state.step = N+1; save(); render();
@@ -413,6 +586,7 @@ async function submit(data){
     stage: s.stage, stage_label: A.stages[s.stage].label,
     answers: readableAnswers(),
     actions: actionsFor(s).map(a => `${a[0]}: ${a[1]}`),
+    causes: (s.result.causes || []).map(c => `${c.k} · ${c.name}`),
     meta: { ref: document.referrer || "", ua: navigator.userAgent, page: location.href, utm: location.search.replace(/^\?/,"") }
   };
   try {
@@ -446,6 +620,28 @@ function bookUrl(L, s){
   const p = new URLSearchParams(); if (L.name) p.set("name", L.name); if (L.email) p.set("email", L.email); p.set("notes", bookingNotes(s));
   return `${C.booking.url}?${p}`;
 }
+/* Needs the engine's esc(). R is assessment.results. Chips carry data-go with the id of the cause to open. */
+function renderCauses(block, R){
+  if (!block.causes || !block.causes.length) return "";
+  return `<p class="cz-intro">${esc(R.causesIntro)}</p><div class="cz">` + block.causes.map((c,i) =>
+    `<details id="cz-${esc(block.id)}-${esc(c.k)}" ${i === 0 ? "open" : ""}>
+      <summary><span class="l">${esc(c.k)}</span><span class="n">${esc(c.name)}<span class="tell"><b>${esc(R.tellLabel)}</b>${esc(c.tell)}</span></span><span class="x" aria-hidden="true">+</span></summary>
+      <div class="in"><p>${esc(c.why)}</p>${c.fix && c.fix.length ? `<p class="k">${esc(R.fixLabel)}</p><ul>${c.fix.map(f => `<li>${esc(f)}</li>`).join("")}</ul>` : ""}</div>
+    </details>`).join("") + `</div>`;
+}
+
+function renderTree(block, R){
+  if (!block.tree || !block.tree.length) return "";
+  const name = k => { const c = (block.causes || []).find(x => x.k === k); return c ? c.name : k; };
+  let n = 0;
+  return `<div class="tr">` + ["now","home","panel"].map(t => {
+    const nodes = block.tree.filter(x => x.tier === t); if (!nodes.length) return "";
+    return `<div class="tier ${t}"><b>${esc(R.tiers[t][0])}</b><span>${esc(R.tiers[t][1])}</span></div><div class="nodes">` + nodes.map(x => { n++;
+      return `<div class="node"><p class="q"><em>${String(n).padStart(2,"0")}</em>${esc(x.q)}</p>${x.how ? `<p class="how">${esc(x.how)}</p>` : ""}
+        <ul class="outs">${x.out.map(o => `<li><span class="a">${esc(o.a)}</span><span class="m">${esc(o.m)}${o.go && o.go.length ? `<span class="go">${o.go.map(k => `<span data-go="cz-${esc(block.id)}-${esc(k)}">${esc(k)} · ${esc(name(k))}</span>`).join("")}</span>` : ""}</span></li>`).join("")}</ul></div>`; }).join("") + `</div>`;
+  }).join("") + `</div>`;
+}
+
 function renderResults(){
   retryPending();
   const s = score(), L = lead(), D = s.drift ? A.drivers[s.drift] : null, S = A.stages[s.stage];
@@ -453,7 +649,9 @@ function renderResults(){
   const block = s.result, PT = A.panelTable;
   const showPanel = block.measureTable || s.stage === "plateaued";
   const panel = showPanel ? `<div class="ptab"><p class="k">${esc(PT.title)}</p><table><tr><th>${esc(PT.head[0])}</th><th>${esc(PT.head[1])}</th></tr>${PT.rows.map(r => `<tr><td>${esc(r[0])}</td><td>${esc(r[1])}</td></tr>`).join("")}</table></div>` : "";
-  const video = embed(C.video && C.video.url);
+  const V = C.video || {}, vr = (V.results || {})[block.id];
+  const resultVid = typeof vr === "string" ? vr : (vr && vr[s.stage]) || "";
+  const player = (id, title) => id ? `<div class="video"><iframe data-vid="${title === (V.closingTitle || "Video") ? "video_closing" : "video_result"}" src="https://www.youtube.com/embed/${encodeURIComponent(id)}?rel=0&playsinline=1&modestbranding=1&enablejsapi=1&origin=${encodeURIComponent(location.origin)}" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin" title="${esc(title)}"></iframe></div>` : "";
   app.innerHTML = `${nav()}
   <div class="wrap">
     <section class="sec">
@@ -466,11 +664,13 @@ function renderResults(){
       ${scale([{ v:s.energy, from: s.energy < 50 ? 92 : 8 }], { aria:`Energy ${s.energy} out of 100. Optimal band starts at ${A.band.optimal}.` })}
     </section>
 
+    ${resultVid ? `<section class="sec"><p class="eyebrow">FIG. 02 · ${esc(V.resultTitle || "")}</p>${player(resultVid, V.resultTitle || "Video")}</section>` : ""}
+
     <section class="sec">
       <p class="eyebrow">${esc(R.driversCode)}<span class="rule"></span><span class="note">${esc(R.driversNote)}</span></p>
       <div class="drivers">
         ${A.driverOrder.map((k,idx) => { const v = s.dims[k], [c,l] = status(v), d = A.drivers[k];
-          return `<div class="drv ${k===s.drift?"drift":""}"><div class="row"><b><em>${esc(d.code)}</em>${esc(d.label)}</b><span class="${c}">${v} · ${esc(l)}</span></div>
+          return `<div class="drv ${k===s.drift?"drift":(v>=A.band.optimal?"in":"")}"><div class="row"><b><em>${esc(d.code)}</em>${esc(d.label)}</b><span class="${c}">${v} · ${esc(l)}</span></div>
             ${scale([{ v, from: idx % 2 ? 96 : 4 }], { sm:true, labels:false, aria:`${d.label} ${v} out of 100` })}</div>`; }).join("")}
       </div>
       <div class="legend"><span style="left:0">0</span><span style="left:50%">50</span><span style="left:${A.band.optimal}%; transform:none">${A.band.optimal}</span><span style="left:100%">100</span></div>
@@ -480,48 +680,83 @@ function renderResults(){
       <p class="eyebrow">${D ? `${esc(R.driftCode)} · ${esc(D.label)}` : "CAL-02 · IN RANGE"}</p>
       <p class="rid">${esc(block.id)} · ${esc(block.name)}</p>
       <h2 class="disp sh">${headline(block.headline)}</h2>
-      ${s.alsoOut.length ? `<p class="also">${esc(R.alsoOut.replace("{list}", s.alsoOut.map(k => A.drivers[k].label).join(" and ")))}</p>` : ""}
-      <p class="sub">${esc(R.happeningCode)}</p>
-      ${block.happening.map(t => `<p class="body">${esc(t)}</p>`).join("")}
+      ${s.alsoOut.length ? `<p class="also">${esc(R.alsoOut.replace("{list}", s.alsoOut.map(k => A.drivers[k].label).join(", ")))}</p>` : ""}
+      <p class="body">${esc(block.lead)}</p>
     </section>
 
-    ${video ? `<section class="sec"><p class="eyebrow">FIG. 02 · ${esc(C.video.title)}</p><div class="video"><iframe src="${esc(video)}" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen title="${esc(C.video.title)}"></iframe></div></section>` : ""}
+    ${(block.causes || []).length ? `<section class="sec">
+      <p class="eyebrow">${esc(R.causesCode)}<span class="rule"></span><span class="note">${block.causes.length} possibilities</span></p>
+      ${renderCauses(block, R)}
+    </section>` : ""}
+
+    <section class="sec">
+      <p class="eyebrow" id="tree">${esc(R.treeCode)}</p>
+      ${(block.tree || []).length ? `<h2 class="disp sh">${headline(R.treeTitle)}</h2>${renderTree(block, R)}` : ""}
+      ${panel}
+      <p class="flags">${esc(R.redFlags)}</p>
+    </section>
 
     <section class="sec">
       <p class="eyebrow">${esc(R.actionsCode)}<span class="rule"></span><span class="note">${esc(R.actionsNote)}</span></p>
       <h2 class="disp sh">${headline(R.actionsTitle)}</h2>
       <ol class="stations">${actionsFor(s).map(([t,a,why],k) => `<li><div class="st-k">Station<b>${pad(k+1)}</b>${esc(t)}</div><div class="st-d">${esc(a)}${why ? `<small>${esc(why)}</small>` : ""}</div></li>`).join("")}</ol>
-    </section>
-
-    <section class="sec">
-      <p class="eyebrow">${esc(R.measureCode)}</p>
-      ${block.measure ? `<div class="measure"><div><p>${esc(block.measure.home)}</p></div><div><p>${esc(block.measure.panel)}</p></div></div>` : ""}
-      ${panel}
       <div class="stage"><b>Stage · ${esc(S.label)}</b>${esc(S.line)}</div>
       <div class="outcome"><div class="k">${esc(R.outcomeCode)}</div><div class="t">${esc(block.outcome[0] || "\u2713")}</div><div><b>${esc(block.outcome[1])}</b><p>${esc(block.outcome[2])}</p></div></div>
     </section>
 
-    <section class="close" id="book">
+    <section class="recap" id="recap">
+      <p class="k">${esc(R.recapCode)}</p>
+      <div class="big">${s.energy}<small>/100</small></div>
+      ${scale([{ v:s.energy, from: s.energy < 50 ? 92 : 8, later:true }], { aria:`Energy ${s.energy} out of 100.` })}
+      <div class="row">${A.driverOrder.map(k => `<span class="${k===s.drift?"low":""}">${esc(A.drivers[k].label)} ${s.dims[k]}</span>`).join("")}</div>
+      <p>${esc(block.id === "06B" ? R.recapBodyOk : R.recapBody)}</p>
+    </section>
+  </div>
+
+  <section class="close" id="book"><div class="wrap">
       <p class="eyebrow">${esc(R.closeCode)}</p>
       <h2 class="disp sh">${headline(R.closeTitle)}</h2>
       <p class="body">${esc(R.closeBody)}</p>
+      ${V.closing ? `<div style="margin:22px 0 4px">${player(V.closing, V.closingTitle || "Video")}<p class="vcap">${esc(V.closingTitle || "")}</p></div>` : ""}
       <div class="plate"><p class="k">The Calibration Guarantee · Day 30</p><p>Today's reading: <b>${s.energy}</b>. ${esc(R.guarantee)}</p></div>
-      <div class="cal" id="cal"><p class="loading">Loading Etienne's calendar</p></div>
-      <a class="btn block" href="${esc(bookUrl(L, s))}" target="_blank" rel="noopener">${esc(R.bookButton)} →</a>
+      <div class="cal" id="cal"><p class="loading">Loading my calendar</p></div>
+      <a class="btn block" id="bookbtn" href="${esc(bookUrl(L, s))}" target="_blank" rel="noopener">${esc(R.bookButton)} \u2192</a>
       <p class="booknote">${esc(R.bookNote)}</p>
-    </section>
+  </div></section>
 
-    ${C.download && C.download.url ? `<section class="sec">${block.pdf ? `<p class="pdfline"><b>${esc(R.pdfLead)}</b> ${esc(block.pdf)}</p>` : ""}<div class="plate dl"><p class="k">${esc(C.download.code)}</p><b>${esc(C.download.title)}</b><p class="muted">${esc(C.download.body)}</p><a class="btn line block" href="${esc(C.download.url)}" target="_blank" rel="noopener" download>${esc(C.download.button)}</a></div></section>` : ""}
+  <div class="wrap">
+    ${C.download && C.download.url ? `<section class="sec">${block.pdf ? `<p class="pdfline"><b>${esc(R.pdfLead)}</b> ${esc(block.pdf)}</p>` : ""}<div class="plate dl"><p class="k">${esc(C.download.code)}</p><b>${esc(C.download.title)}</b><p class="muted">${esc(C.download.body)}</p><a class="btn line block" id="pdfbtn" href="${esc(C.download.url)}" target="_blank" rel="noopener" download>${esc(C.download.button)}</a></div></section>` : ""}
 
     <div class="tools"><button class="btn line" id="copy">${esc(R.copy)}</button><button class="btn line" id="again">${esc(R.retake)}</button></div>
   </div>${foot(A.footerResults)}`;
+  /* Cause chips in the tree open and scroll to their cause. */
+  app.querySelectorAll("[data-go]").forEach(ch => { ch.setAttribute("role","button"); ch.tabIndex = 0;
+    const go = () => { const d = document.getElementById(ch.dataset.go); if (!d) return; T.step("chip_click"); d.open = true; d.scrollIntoView({ behavior:"smooth", block:"center" }); };
+    ch.onclick = go; ch.onkeydown = e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(); } }; });
+  /* The closing score's needle settles when the block scrolls into view. */
+  const later = app.querySelectorAll(".needle.later");
+  if (later.length){
+    if (matchMedia("(prefers-reduced-motion: reduce)").matches || !("IntersectionObserver" in window)) later.forEach(n => n.style.left = n.dataset.v + "%");
+    else { const io = new IntersectionObserver(es => es.forEach(en => { if (en.isIntersecting){ later.forEach(n => n.style.left = n.dataset.v + "%"); io.disconnect(); } }), { threshold:.4 }); io.observe(document.getElementById("recap")); }
+  }
   settle();
   loadCal(L, s);
-  document.getElementById("again").onclick = () => { state = { step:0, answers:{}, submitted:false }; save(); render(); };
+  T.step("results_view", { r: block.id, st: s.stage, en: s.energy }, true);
+  app.querySelectorAll(".cz summary").forEach(sm => sm.addEventListener("click", () => { const d = sm.parentElement; if (!d.open) T.step("cause_open", { k: d.id.split("-").pop() }); }));
+  T.whenSeen(document.getElementById("tree"), "tree_view");
+  T.whenSeen(document.getElementById("recap"), "recap_view");
+  T.whenSeen(document.getElementById("book"), "call_view");
+  T.whenSeen(document.getElementById("cal"), "cal_view");
+  app.querySelectorAll("iframe[data-vid]").forEach(f => T.watchVideo(f, f.dataset.vid));
+  const bb = document.getElementById("bookbtn"); if (bb) bb.addEventListener("click", () => T.step("book_click", null, true));
+  const pb = document.getElementById("pdfbtn"); if (pb) pb.addEventListener("click", () => T.step("pdf", null, true));
+  document.getElementById("again").onclick = () => { T.step("retake"); state = { step:0, answers:{}, submitted:false }; save(); render(); };
   document.getElementById("copy").onclick = async () => {
+    T.step("copy");
     const text = `My CalibreX energy reading: ${s.energy}/100 (${elab}).\n` +
       A.driverOrder.map(k => `${A.drivers[k].label} ${s.dims[k]}`).join(", ") +
-      `\nPrimary drift: ${D ? D.label : block.driftLabel.toLowerCase()}. ${block.name}.\n\nTomorrow:\n` + actionsFor(s).map((a,k) => `${k+1}. ${a[0]}: ${a[1]}`).join("\n");
+      `\nPrimary drift: ${D ? D.label : block.driftLabel.toLowerCase()}. ${block.name}.\n\nTomorrow:\n` + actionsFor(s).map((a,k) => `${k+1}. ${a[0]}: ${a[1]}`).join("\n") +
+      ((block.causes || []).length ? `\n\n${R.causesCopy}:\n` + block.causes.map(c => `${c.k}. ${c.name}`).join("\n") : "");
     try { await navigator.clipboard.writeText(text); toast("Copied"); }
     catch(e){ const t = document.createElement("textarea"); t.value = text; document.body.appendChild(t); t.select(); try { document.execCommand("copy"); toast("Copied"); } catch(_){ toast("Copy not available here"); } t.remove(); }
   };
@@ -535,6 +770,7 @@ function loadCal(L, s){
     Cal("init", { origin:"https://cal.com" });
     Cal("inline", opts);
     Cal("ui", { theme:"light", styles:{ branding:{ brandColor:"#171D1A" } }, hideEventTypeDetails:false, layout:"month_view" });
+    ["bookingSuccessful", "bookingSuccessfulV2"].forEach(action => Cal("on", { action, callback: () => T.step("booked", null, true) }));
   } catch(e){ box.remove(); } };
   if (window.Cal && window.Cal.loaded) return go();
   (function (C, A, L) { let p = function (a, ar) { a.q.push(ar); }; let d = C.document; C.Cal = C.Cal || function () { let cal = C.Cal; let ar = arguments; if (!cal.loaded) { cal.ns = {}; cal.q = cal.q || []; d.head.appendChild(d.createElement("script")).src = A; cal.loaded = true; } if (ar[0] === L) { const api = function () { p(api, arguments); }; const namespace = ar[1]; api.q = api.q || []; if (typeof namespace === "string") { cal.ns[namespace] = cal.ns[namespace] || api; p(cal.ns[namespace], ar); p(cal, ["initNamespace", namespace]); } else p(cal, ar); return; } p(cal, ar); }; })(window, "https://app.cal.com/embed/embed.js", "init");

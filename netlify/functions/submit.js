@@ -43,6 +43,7 @@ exports.handler = async (event) => {
     lead_extra: Object.fromEntries(Object.entries(lead).filter(([k]) => !known.includes(k)).map(([k, v]) => [k, String(v).slice(0, 200)])),
     answers: Array.isArray(p.answers) ? p.answers.slice(0, 60) : [],
     actions: Array.isArray(p.actions) ? p.actions.slice(0, 5) : [],
+    causes: Array.isArray(p.causes) ? p.causes.slice(0, 30).map(c => String(c).slice(0, 120)) : [],
     meta: p.meta || {}
   };
 
