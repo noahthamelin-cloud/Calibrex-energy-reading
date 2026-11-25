@@ -314,12 +314,52 @@ section.sec:first-child{border-top:0; margin-top:0; padding-top:36px}
 .tr .go span{cursor:pointer}
 .tr .go span:hover,.tr .go span:focus-visible{background:var(--deep); color:#fff; border-color:var(--deep)}
 .flags{border-left:3px solid var(--ink)}
+/* tap-to-load video */
+.vcover{position:absolute; inset:0; width:100%; height:100%; border:0; padding:0; cursor:pointer; background:var(--carbon) center/cover no-repeat; display:grid; place-items:center}
+.vcover::after{content:""; position:absolute; inset:0; background:linear-gradient(180deg, rgba(0,0,0,0) 55%, rgba(0,0,0,.35))}
+.vplay{position:relative; z-index:1; width:68px; height:68px; border-radius:50%; background:#fff; box-shadow:0 6px 24px rgba(0,0,0,.25); transition:transform .2s}
+.vplay::before{content:""; position:absolute; left:27px; top:21px; border-left:20px solid var(--deep); border-top:13px solid transparent; border-bottom:13px solid transparent}
+.vcover:hover .vplay,.vcover:focus-visible .vplay{transform:scale(1.06)}
+/* offer, proof, faq inside the call block */
+.offer{margin:34px 0 0; padding-top:28px; border-top:1px solid rgba(255,255,255,.3)}
+.offer .eyebrow .rule{background:rgba(255,255,255,.4)}
+.offer .eyebrow .note{color:#fff; opacity:.85}
+.ofl{list-style:none; margin:18px 0 0; padding:0; background:#fff; color:var(--ink)}
+.ofl li{display:grid; grid-template-columns:44px 1fr; gap:4px 12px; padding:14px 16px; border-top:1px solid var(--hairline)}
+.ofl li:first-child{border-top:0}
+.ofl .n{font-family:var(--mono); font-size:11px; letter-spacing:.12em; color:var(--verdant); padding-top:2px}
+.ofl b{font-family:var(--display); font-stretch:125%; font-weight:600; font-size:15px; letter-spacing:.01em}
+.ofl p{margin:3px 0 0; font-size:14px; color:var(--steel)}
+.close .plate.guar{background:var(--plate); margin-top:16px}
+.close .plate.guar .k{color:var(--ink)}
+.proof{margin:30px 0 0}
+.tq{margin:0; background:var(--mint); color:var(--ink); padding:18px 16px 16px; display:grid; grid-template-columns:72px 1fr; gap:12px 14px; align-items:start}
+.tq img{width:72px; height:72px; object-fit:cover; display:block}
+.tq blockquote{margin:0; font-size:14.5px; line-height:1.55}
+.tq figcaption{grid-column:1/-1; font-family:var(--mono); font-size:10px; letter-spacing:.18em; text-transform:uppercase; color:var(--steel)}
+.tq figcaption b{color:var(--ink); font-weight:600}
+@media (max-width:420px){.tq{grid-template-columns:56px 1fr}.tq img{width:56px; height:56px}}
+.faq{margin:30px 0 8px}
+.faq details{background:#fff; color:var(--ink); border-top:1px solid var(--hairline)}
+.faq details:first-of-type{border-top:0}
+.faq summary{list-style:none; cursor:pointer; padding:14px 44px 14px 16px; position:relative; font-weight:600; font-size:14.5px; min-height:44px}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::after{content:"+"; position:absolute; right:16px; top:12px; font-family:var(--mono); font-size:18px; color:var(--verdant)}
+.faq details[open] summary::after{content:"\2212"}
+.faq details p{margin:0; padding:0 16px 16px; font-size:14px; color:var(--steel)}
+/* sticky book button, phones only */
+.stickybook{position:fixed; left:12px; right:12px; bottom:calc(12px + env(safe-area-inset-bottom)); z-index:20; display:block; text-align:center; background:var(--ink); color:#fff; text-decoration:none; font-family:var(--mono); font-size:11px; letter-spacing:.2em; text-transform:uppercase; padding:17px 14px; box-shadow:0 8px 28px rgba(0,0,0,.22); animation:sbin .25s ease-out}
+.stickybook[hidden]{display:none}
+@keyframes sbin{from{transform:translateY(12px); opacity:0}to{transform:none; opacity:1}}
+@media (min-width:768px){.stickybook{display:none !important}}
+@media (prefers-reduced-motion: reduce){.stickybook{animation:none}.vplay{transition:none}}
 </style>
 </head>
 <body>
 <div id="app"></div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <script src="config.js"></script>
+<script src="assets/xplr/xplr-track.js"></script>
 <script>
 /* =====================================================================
    ENGINE (CalibreX build of the XPLR Interactive Client Acquisition engine).
@@ -333,71 +373,9 @@ let state = { step:-1, answers:{}, submitted:false };
 try { const s = JSON.parse(localStorage.getItem(KEY) || "null"); if (s && s.answers) state = s; } catch(e){}
 const save = () => { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch(e){} };
 
-/* ---------- Anonymous funnel tracking ----------
-   Sends step names only (never names, emails or numbers) to /.netlify/functions/track, read by the Funnel tab in /admin.
-   A visit is one session: a new one starts after 30 minutes idle. Browsers signed in to /admin, or opened once
-   with ?notrack=1, are left out so testing doesn't count. */
-const T = (() => {
-  const rid = () => ((window.crypto && crypto.randomUUID) ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2)).replace(/[^\w-]/g, "").slice(0, 32);
-  let off = false, vid = "", sess = null;
-  try {
-    if (/[?&]notrack=1\b/.test(location.search)) localStorage.setItem("ica-notrack", "1");
-    if (/[?&]notrack=0\b/.test(location.search)) localStorage.removeItem("ica-notrack");
-    off = localStorage.getItem("ica-notrack") === "1";
-    vid = localStorage.getItem("ica-vid") || rid(); localStorage.setItem("ica-vid", vid);
-    sess = JSON.parse(sessionStorage.getItem("ica-sess") || "null");
-  } catch(e){}
-  if (!vid) vid = rid();
-  if (!sess || Date.now() - sess.at > 30 * 60e3) {
-    const q = new URLSearchParams(location.search), ref = (() => { try { return new URL(document.referrer).hostname.replace(/^www\.|^l\.|^lm\.|^m\./, ""); } catch(e){ return ""; } })();
-    const src = (q.get("utm_source") || q.get("src") || (ref && ref !== location.hostname ? ref.split(".")[0] : "") || "direct").toLowerCase().slice(0, 40);
-    sess = { sid: rid(), day: new Date().toISOString().slice(0, 10), src, seen: {} };
-  }
-  const dev = matchMedia("(max-width: 767px)").matches ? "mobile" : "desktop";
-  let queue = [];
-  const keep = () => { sess.at = Date.now(); try { sessionStorage.setItem("ica-sess", JSON.stringify(sess)); } catch(e){} };
-  function flush(){
-    if (off || !queue.length) return;
-    const body = JSON.stringify({ coach: C.coach.slug, sid: sess.sid, vid, day: sess.day, src: sess.src, dev, ev: queue }); queue = [];
-    try { if (navigator.sendBeacon && navigator.sendBeacon("/.netlify/functions/track", new Blob([body], { type: "text/plain" }))) return; } catch(e){}
-    try { fetch("/.netlify/functions/track", { method: "POST", body, keepalive: true }); } catch(e){}
-  }
-  /* Most steps count once per visit; "q", cause opens and chip taps are always sent. */
-  function step(e, extra, now){
-    if (off) return;
-    const repeat = e === "q" || e === "cause_open" || e === "chip_click";
-    const id = e === "q" ? "q" + extra.n : e;
-    if (!repeat && sess.seen[id]) return;
-    if (e === "q" && sess.seen[id]) return;
-    sess.seen[id] = 1; keep();
-    queue.push(Object.assign({ e, t: new Date().toISOString() }, extra || {}));
-    if (now || queue.length >= 8) flush();
-  }
-  addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") flush(); });
-  addEventListener("pagehide", flush);
-  /* One-shot "seen" steps for blocks that scroll into view. */
-  function whenSeen(el, e){
-    if (!el || off) return;
-    if (!("IntersectionObserver" in window)) return step(e);
-    const io = new IntersectionObserver(es => es.forEach(x => { if (x.isIntersecting){ step(e); io.disconnect(); } }), { threshold: .35 });
-    io.observe(el);
-  }
-  /* YouTube plays: ask each player to report its state and count the first play. */
-  const players = new Map();
-  addEventListener("message", m => {
-    if (!/youtube(-nocookie)?\.com$/.test((() => { try { return new URL(m.origin).hostname; } catch(e){ return ""; } })())) return;
-    let d; try { d = typeof m.data === "string" ? JSON.parse(m.data) : m.data; } catch(e){ return; }
-    const ev = players.get(m.source);
-    const st = d && (d.event === "onStateChange" ? d.info : d.info && d.info.playerState);
-    if (ev && st === 1) { step(ev, null, true); players.delete(m.source); }
-  });
-  function watchVideo(iframe, e){
-    if (!iframe || off) return;
-    const hello = () => { players.set(iframe.contentWindow, e); try { iframe.contentWindow.postMessage(JSON.stringify({ event: "listening", id: e, channel: "widget" }), "*"); } catch(_){} };
-    iframe.addEventListener("load", () => { hello(); setTimeout(hello, 1500); });
-  }
-  return { step, flush, whenSeen, watchVideo, off: () => off };
-})();
+/* ---------- Anonymous funnel tracking (XPLR Funnel Tracking base layer, assets/xplr/xplr-track.js) ----------
+   Step names only, never names, emails or numbers. Read by the Funnel tab in /admin. */
+const T = XPLRTrack.init({ site: C.coach.slug, repeat: ["cause_open", "chip_click"] });
 const lead = () => { try { return JSON.parse(localStorage.getItem(LEAD_KEY) || "null") || {}; } catch(e){ return {}; } };
 const saveLead = l => { try { localStorage.setItem(LEAD_KEY, JSON.stringify(l)); } catch(e){} };
 const Q = A.questions, N = Q.length;          // steps: -1 intro, 0..N-1 questions, N gate, N+1 results
@@ -651,7 +629,9 @@ function renderResults(){
   const panel = showPanel ? `<div class="ptab"><p class="k">${esc(PT.title)}</p><table><tr><th>${esc(PT.head[0])}</th><th>${esc(PT.head[1])}</th></tr>${PT.rows.map(r => `<tr><td>${esc(r[0])}</td><td>${esc(r[1])}</td></tr>`).join("")}</table></div>` : "";
   const V = C.video || {}, vr = (V.results || {})[block.id];
   const resultVid = typeof vr === "string" ? vr : (vr && vr[s.stage]) || "";
-  const player = (id, title) => id ? `<div class="video"><iframe data-vid="${title === (V.closingTitle || "Video") ? "video_closing" : "video_result"}" src="https://www.youtube.com/embed/${encodeURIComponent(id)}?rel=0&playsinline=1&modestbranding=1&enablejsapi=1&origin=${encodeURIComponent(location.origin)}" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin" title="${esc(title)}"></iframe></div>` : "";
+  /* Tap-to-load: a cover with the video thumbnail; YouTube only loads when they tap play (faster page, and the tap counts as the play). */
+  const player = (id, title) => id ? `<div class="video"><button type="button" class="vcover" data-yt="${esc(id)}" data-vid="${title === (V.closingTitle || "Video") ? "video_closing" : "video_result"}" data-title="${esc(title)}" aria-label="Play: ${esc(title)}" style="background-image:url('https://i.ytimg.com/vi/${encodeURIComponent(id)}/hqdefault.jpg')"><span class="vplay" aria-hidden="true"></span></button></div>` : "";
+  const O = C.offer || null;
   app.innerHTML = `${nav()}
   <div class="wrap">
     <section class="sec">
@@ -718,7 +698,15 @@ function renderResults(){
       <h2 class="disp sh">${headline(R.closeTitle)}</h2>
       <p class="body">${esc(R.closeBody)}</p>
       ${V.closing ? `<div style="margin:22px 0 4px">${player(V.closing, V.closingTitle || "Video")}<p class="vcap">${esc(V.closingTitle || "")}</p></div>` : ""}
-      <div class="plate"><p class="k">The Calibration Guarantee · Day 30</p><p>Today's reading: <b>${s.energy}</b>. ${esc(R.guarantee)}</p></div>
+      ${O ? `<div class="offer" id="offer">
+        <p class="eyebrow">${esc(O.code)} · ${esc(O.length)}</p>
+        <h2 class="disp sh">${headline(O.title)}</h2>
+        <p class="body">${esc(O.lead)}</p>
+        <ol class="ofl">${O.items.map(([t, d], k) => `<li><span class="n">${pad(k + 1)}</span><div><b>${esc(t)}</b><p>${esc(d)}</p></div></li>`).join("")}</ol>
+      </div>` : ""}
+      <div class="plate guar"><p class="k">${esc(O ? O.guaranteeTitle : "The Calibration Guarantee · Day 30")}</p><p>Today's reading: <b>${s.energy}</b>. ${esc(R.guarantee)}</p></div>
+      ${O && (O.proof || []).length ? `<div class="proof" id="proof"><p class="eyebrow">${esc(O.proofCode)}</p>${O.proof.map(p => `<figure class="tq">${p.photo ? `<img src="${esc(p.photo)}" alt="${esc(p.name)}" width="72" height="72" loading="lazy">` : ""}<blockquote>“${esc(p.quote)}”</blockquote><figcaption><b>${esc(p.name)}</b>${p.role ? ` · ${esc(p.role)}` : ""}</figcaption></figure>`).join("")}</div>` : ""}
+      ${O && (O.faq || []).length ? `<div class="faq" id="faq"><p class="eyebrow">${esc(O.faqCode)}</p>${O.faq.map(([q, a], k) => `<details data-k="${k + 1}"><summary>${esc(q)}</summary><p>${esc(a)}</p></details>`).join("")}</div>` : ""}
       <div class="cal" id="cal"><p class="loading">Loading my calendar</p></div>
       <a class="btn block" id="bookbtn" href="${esc(bookUrl(L, s))}" target="_blank" rel="noopener">${esc(R.bookButton)} \u2192</a>
       <p class="booknote">${esc(R.bookNote)}</p>
@@ -728,7 +716,8 @@ function renderResults(){
     ${C.download && C.download.url ? `<section class="sec">${block.pdf ? `<p class="pdfline"><b>${esc(R.pdfLead)}</b> ${esc(block.pdf)}</p>` : ""}<div class="plate dl"><p class="k">${esc(C.download.code)}</p><b>${esc(C.download.title)}</b><p class="muted">${esc(C.download.body)}</p><a class="btn line block" id="pdfbtn" href="${esc(C.download.url)}" target="_blank" rel="noopener" download>${esc(C.download.button)}</a></div></section>` : ""}
 
     <div class="tools"><button class="btn line" id="copy">${esc(R.copy)}</button><button class="btn line" id="again">${esc(R.retake)}</button></div>
-  </div>${foot(A.footerResults)}`;
+  </div>${foot(A.footerResults)}
+  ${O ? `<a class="stickybook" id="stickybook" href="#cal" hidden>${esc(O.sticky)} \u2192</a>` : ""}`;
   /* Cause chips in the tree open and scroll to their cause. */
   app.querySelectorAll("[data-go]").forEach(ch => { ch.setAttribute("role","button"); ch.tabIndex = 0;
     const go = () => { const d = document.getElementById(ch.dataset.go); if (!d) return; T.step("chip_click"); d.open = true; d.scrollIntoView({ behavior:"smooth", block:"center" }); };
@@ -745,9 +734,28 @@ function renderResults(){
   app.querySelectorAll(".cz summary").forEach(sm => sm.addEventListener("click", () => { const d = sm.parentElement; if (!d.open) T.step("cause_open", { k: d.id.split("-").pop() }); }));
   T.whenSeen(document.getElementById("tree"), "tree_view");
   T.whenSeen(document.getElementById("recap"), "recap_view");
-  T.whenSeen(document.getElementById("book"), "call_view");
+  T.whenSeen(document.querySelector("#book .eyebrow"), "call_view");   /* the heading, since the block is taller than a phone screen */
   T.whenSeen(document.getElementById("cal"), "cal_view");
-  app.querySelectorAll("iframe[data-vid]").forEach(f => T.watchVideo(f, f.dataset.vid));
+  app.querySelectorAll(".vcover").forEach(b => b.addEventListener("click", () => {
+    T.step(b.dataset.vid, null, true);
+    const f = document.createElement("iframe");
+    f.src = `https://www.youtube.com/embed/${encodeURIComponent(b.dataset.yt)}?rel=0&playsinline=1&modestbranding=1&autoplay=1`;
+    f.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"; f.allowFullscreen = true;
+    f.referrerPolicy = "strict-origin-when-cross-origin"; f.title = b.dataset.title || "Video";
+    b.replaceWith(f);
+  }));
+  T.whenSeen(document.querySelector("#offer .ofl"), "offer_view");
+  T.whenSeen(document.getElementById("proof"), "proof_view");
+  app.querySelectorAll(".faq details").forEach(d => d.addEventListener("toggle", () => { if (d.open) T.step("faq_open", { k: d.dataset.k }); }));
+  /* Sticky book button on phones: shows once they're past their reading, hides while the call block is on screen. */
+  const sb = document.getElementById("stickybook");
+  if (sb && "IntersectionObserver" in window){
+    let pastTop = false, atBook = false;
+    const upd = () => { sb.hidden = !(pastTop && !atBook); };
+    new IntersectionObserver(es => { pastTop = !es[0].isIntersecting && es[0].boundingClientRect.top < 0; upd(); }).observe(app.querySelector(".readout"));
+    new IntersectionObserver(es => { atBook = es[0].isIntersecting; upd(); }, { rootMargin: "0px 0px -30% 0px" }).observe(document.getElementById("book"));
+    sb.addEventListener("click", e => { e.preventDefault(); T.step("sticky_click"); document.getElementById("offer").scrollIntoView({ behavior: "smooth", block: "start" }); });
+  }
   const bb = document.getElementById("bookbtn"); if (bb) bb.addEventListener("click", () => T.step("book_click", null, true));
   const pb = document.getElementById("pdfbtn"); if (pb) pb.addEventListener("click", () => T.step("pdf", null, true));
   document.getElementById("again").onclick = () => { T.step("retake"); state = { step:0, answers:{}, submitted:false }; save(); render(); };

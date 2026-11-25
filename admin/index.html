@@ -136,13 +136,14 @@ table.t td:first-child,table.t th:first-child{text-align:left}
 <div class="sheet" id="sheet"><div class="panel" id="panel"></div></div>
 <div class="toast" id="toast" role="status"></div>
 <script src="/config.js"></script>
+<script src="/assets/xplr/xplr-funnel.js"></script>
 <script>
 const C = window.ICA || { coach:{ name:"Leads", wordmark:"" }, assessment:{ drivers:{}, driverOrder:[], stages:{}, band:{ optimal:75 } }, admin:{} };
 const A = C.assessment;
 const app = document.getElementById("app");
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const SESSION = "ica-admin-session";
-let session = null, data = { coach:null, leads:[] }, view = { q:"", drift:"", stage:"", tab:"leads" }, fview = { days:30, src:"", dev:"" }, fcache = {};
+let session = null, data = { coach:null, leads:[] }, view = { q:"", drift:"", stage:"", tab:"leads" };
 try { session = JSON.parse(sessionStorage.getItem(SESSION) || "null"); } catch(e){}
 const seenKey = () => `ica-admin-seen-${(session && session.coach) || "site"}`;
 const lastSeen = () => { try { return localStorage.getItem(seenKey()) || ""; } catch(e){ return ""; } };
@@ -164,7 +165,7 @@ function renderLogin(msg){
     const r = await api({ pin });
     if (!r.ok){ b.disabled = false; b.textContent = "Sign in"; document.getElementById("err").textContent = r.error; return; }
     session = { pin, coach: r.coach.slug }; sessionStorage.setItem(SESSION, JSON.stringify(session));
-    try { localStorage.setItem("ica-notrack", "1"); } catch(e){}
+    try { localStorage.setItem("xplr-notrack", "1"); } catch(e){}
     data = r; renderApp();
   };
 }
@@ -232,7 +233,7 @@ function renderApp(){
   document.getElementById("fs").onchange = e => { view.stage = e.target.value; renderList(seen); };
   document.getElementById("csv").onclick = exportCsv;
   document.getElementById("out").onclick = () => { sessionStorage.removeItem(SESSION); session = null; renderLogin(); };
-  document.getElementById("refresh").onclick = async () => { fcache = {}; const r = await api(session); if (r.ok){ data = r; renderApp(); toast("Updated"); } else toast(r.error); };
+  document.getElementById("refresh").onclick = async () => { const r = await api(session); if (r.ok){ data = r; renderApp(); toast("Updated"); } else toast(r.error); };
   if (data.leads.length) try { localStorage.setItem(seenKey(), data.leads[0].created_at); } catch(e){}
 }
 
@@ -301,102 +302,27 @@ function openLead(id){
 }
 
 
-/* ---------- Funnel tab: anonymous visit records from /.netlify/functions/stats ---------- */
-const STEPS = [["land","Landed on the reading"],["start","Started"]]
-  .concat((A.questions || []).map((q,i) => ["q" + (i+1), `Answered Q${String(i+1).padStart(2,"0")}`, q.part]))
-  .concat([["gate_view","Saw the details screen"],["gate_submit","Left their details (lead)"],["results_view","Saw their reading"],
-    ["tree_view","Reached the checks"],["recap_view","Reached the closing score"],["call_view","Reached the call"],["book_click","Clicked book"],["booked","Booked a call"]]);
-const IDX = Object.fromEntries(STEPS.map((x,i) => [x[0], i]));
-function reach(se){   // furthest step reached; every earlier step counts as reached
-  let m = -1;
-  se.st.forEach(k => { if (k in IDX && IDX[k] > m && k !== "book_click" && k !== "booked") m = IDX[k]; });
-  if (se.q) m = Math.max(m, IDX["q" + se.q] ?? -1);
-  if (se.st.includes("book_click")) m = Math.max(m, IDX.book_click);
-  if (se.st.includes("booked")) m = IDX.booked;
-  return m;
-}
-const pct = (a,b) => b ? Math.round(a / b * 100) + "%" : "–";
-async function loadFunnel(){
+/* ---------- Funnel tab: XPLR Funnel Tracking base layer (/assets/xplr/xplr-funnel.js) ---------- */
+let funnelUI = null;
+function loadFunnel(){
   const el = document.getElementById("tab-funnel");
-  const key = String(fview.days);
-  if (!fcache[key]){
-    el.innerHTML = `<p class="empty">Loading the funnel</p>`;
-    try {
-      const r = await fetch("/.netlify/functions/stats", { method:"POST", headers:{ "Content-Type":"application/json" }, body: JSON.stringify({ pin: session.pin, days: fview.days }) });
-      const j = await r.json().catch(() => ({}));
-      if (!r.ok){ el.innerHTML = `<p class="empty">${esc(j.error || "Couldn’t load the funnel.")}</p>`; return; }
-      fcache[key] = j;
-    } catch(e){ el.innerHTML = `<p class="empty">Couldn’t reach the server.</p>`; return; }
-  }
-  renderFunnel(fcache[key]);
-}
-function renderFunnel(F){
-  const el = document.getElementById("tab-funnel");
-  const all = F.sessions || [];
-  const srcs = [...new Set(all.map(x => x.src || "direct"))].sort();
-  const S = all.filter(x => (!fview.src || (x.src || "direct") === fview.src) && (!fview.dev || x.dev === fview.dev));
-  const R = S.map(reach);
-  const at = i => R.filter(m => m >= i).length;
-  const counts = STEPS.map((_, i) => at(i));
-  const base = counts[0] || 0;
-  // biggest single drop after "Started"
-  let worst = -1, worstLoss = 0;
-  counts.forEach((c,i) => { if (i < 2) return; const loss = counts[i-1] - c; if (loss > worstLoss){ worstLoss = loss; worst = i; } });
-  const groupAt = { 0:"Arrive", 2:"Questions", [IDX.gate_view]:"Details", [IDX.results_view]:"Results page" };
-  const rows = STEPS.map(([k, label, sub], i) => {
-    const prev = i ? counts[i-1] : counts[i], loss = prev - counts[i];
-    return (groupAt[i] ? `<div class="fr grp">${groupAt[i]}</div>` : "") +
-      `<div class="fr ${i === worst ? "worst" : ""}"><div class="lab">${esc(label)}${sub ? `<small>${esc(sub)}</small>` : ""}</div><div class="n">${counts[i]}</div><div class="d">${i ? (loss ? "−" + loss + " · " + pct(loss, prev) : "–") : pct(counts[i], base)}</div><div class="fbar"><i style="width:${base ? counts[i] / base * 100 : 0}%"></i></div></div>`;
-  }).join("");
-  const seenRes = S.filter(x => x.st.includes("results_view") || x.r);
-  const has = (arr, k) => arr.filter(x => x.st.includes(k)).length;
-  const causeOpeners = seenRes.filter(x => Object.keys(x.c || {}).length).length;
-  // by source
-  const bySrc = srcs.map(src => { const g = all.filter(x => (x.src || "direct") === src && (!fview.dev || x.dev === fview.dev)); const m = g.map(reach);
-    return [src, g.length, m.filter(v => v >= IDX.start).length, m.filter(v => v >= IDX.gate_submit).length, m.filter(v => v >= IDX.book_click).length, m.filter(v => v >= IDX.booked).length]; }).filter(r => r[1]).sort((a,b) => b[1] - a[1]);
-  // by result
-  const ids = [...new Set(seenRes.map(x => x.r).filter(Boolean))].sort();
-  const byRes = ids.map(id => { const g = seenRes.filter(x => x.r === id);
-    return [id, (RESULTS[id] || {}).name || "", g.length, g.filter(x => Object.keys(x.c || {}).length).length, has(g, "call_view"), has(g, "book_click"), has(g, "booked")]; });
-  // top causes
-  const cc = {};
-  seenRes.forEach(x => Object.entries(x.c || {}).forEach(([k]) => { const key = x.r + "·" + k; cc[key] = (cc[key] || 0) + 1; }));
-  const top = Object.entries(cc).sort((a,b) => b[1] - a[1]).slice(0, 10).map(([key, n]) => { const [id, k] = key.split("·"); const c = ((RESULTS[id] || {}).causes || []).find(x => x.k === k);
-    return `<tr><td>${esc(id)} · ${esc(k)} · ${esc(c ? c.name : "")}</td><td>${n}</td></tr>`; }).join("");
-  const mob = S.filter(x => x.dev === "mobile").length;
-  el.innerHTML = `
-    <div class="fctl">
-      <select id="f-days">${[[7,"Last 7 days"],[30,"Last 30 days"],[90,"Last 90 days"],[365,"Last 12 months"]].map(([v,l]) => `<option value="${v}" ${fview.days==v?"selected":""}>${l}</option>`).join("")}</select>
-      <select id="f-src"><option value="">All sources</option>${srcs.map(x => `<option ${fview.src===x?"selected":""}>${esc(x)}</option>`).join("")}</select>
-      <select id="f-dev"><option value="">All devices</option><option value="mobile" ${fview.dev==="mobile"?"selected":""}>Mobile</option><option value="desktop" ${fview.dev==="desktop"?"selected":""}>Desktop</option></select>
-    </div>
-    <div class="stats">
-      <div class="stat"><b>${base}</b><span>Visits</span></div>
-      <div class="stat"><b>${pct(counts[IDX.start], base)}</b><span>Started</span></div>
-      <div class="stat"><b>${pct(counts[IDX.gate_submit], counts[IDX.start])}</b><span>Starters who left details</span></div>
-      <div class="stat"><b>${counts[IDX.booked]}</b><span>Booked (${pct(counts[IDX.booked], counts[IDX.gate_submit])} of leads)</span></div>
-    </div>
-    ${base ? "" : `<p class="note">No visits in this range yet. Visits from browsers signed in here are not counted, so test from another phone (or open the reading once with ?notrack=0 to count this one again).</p>`}
-    ${F.truncated ? `<p class="note">Showing the most recent 5,000 visits in this range.</p>` : ""}
-    <h3 class="sh">Where people drop off</h3>
-    <div class="fn">${rows}</div>
-    ${worst > 0 ? `<p class="note">Biggest drop: ${esc(STEPS[worst][1])}${STEPS[worst][2] ? ` (${esc(STEPS[worst][2])})` : ""}, ${worstLoss} ${worstLoss === 1 ? "visit" : "visits"} lost.</p>` : ""}
-    <h3 class="sh">On the results page (${seenRes.length} readings)</h3>
-    <table class="t"><tr><th>Did this</th><th>Visits</th><th>Share</th></tr>
-      ${[["Opened a cause", causeOpeners],["Tapped a cause chip in the checks", seenRes.filter(x => x.ch).length],["Played their result video", has(seenRes,"video_result")],["Played the closing video", has(seenRes,"video_closing")],["Saw the calendar", has(seenRes,"cal_view")],["Downloaded the routine PDF", has(seenRes,"pdf")],["Copied their reading", has(seenRes,"copy")],["Retook it", has(seenRes,"retake")]]
-        .map(([l,n]) => `<tr><td>${l}</td><td>${n}</td><td>${pct(n, seenRes.length)}</td></tr>`).join("")}</table>
-    <h3 class="sh">By source</h3>
-    <table class="t"><tr><th>Source</th><th>Visits</th><th>Started</th><th>Leads</th><th>Lead rate</th><th>Book clicks</th><th>Booked</th></tr>
-      ${bySrc.map(r => `<tr><td>${esc(r[0])}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td><td>${pct(r[3], r[1])}</td><td>${r[4]}</td><td>${r[5]}</td></tr>`).join("") || `<tr><td colspan="7">No visits yet.</td></tr>`}</table>
-    <h3 class="sh">By result</h3>
-    <table class="t"><tr><th>Result</th><th>Readings</th><th>Opened a cause</th><th>Reached the call</th><th>Book clicks</th><th>Booked</th></tr>
-      ${byRes.map(r => `<tr><td>${esc(r[0])} · ${esc(r[1])}</td><td>${r[2]}</td><td>${r[3]}</td><td>${r[4]}</td><td>${r[5]}</td><td>${r[6]}</td></tr>`).join("") || `<tr><td colspan="6">No readings yet.</td></tr>`}</table>
-    <h3 class="sh">Most opened causes</h3>
-    <table class="t"><tr><th>Cause</th><th>Opens</th></tr>${top || `<tr><td colspan="2">None yet.</td></tr>`}</table>
-    <p class="note">${mob} of ${S.length} visits on mobile. Source comes from the link's utm_source tag, or the site they came from. Every link you share should carry a tag, for example ?utm_source=instagram.</p>`;
-  document.getElementById("f-days").onchange = e => { fview.days = +e.target.value; loadFunnel(); };
-  document.getElementById("f-src").onchange = e => { fview.src = e.target.value; renderFunnel(F); };
-  document.getElementById("f-dev").onchange = e => { fview.dev = e.target.value; renderFunnel(F); };
+  const steps = [{ e:"land", label:"Landed on the reading", group:"Arrive" }, { e:"start", label:"Started" }]
+    .concat((A.questions || []).map((q,i) => ({ q: i+1, label:`Answered Q${String(i+1).padStart(2,"0")}`, sub: q.part, group: i ? null : "Questions" })))
+    .concat([{ e:"gate_view", label:"Saw the details screen", group:"Details" }, { e:"gate_submit", label:"Left their details (lead)" },
+      { e:"results_view", label:"Saw their reading", group:"Results page" }, { e:"tree_view", label:"Reached the checks" }, { e:"recap_view", label:"Reached the closing score" },
+      { e:"call_view", label:"Reached the call" }, { e:"offer_view", label:"Saw the program" }, { e:"book_click", label:"Clicked book" }, { e:"booked", label:"Booked a call" }]);
+  const both = [["Visits","land"],["Started","start"],["Leads","gate_submit"],["Book clicks","book_click"],["Booked","booked"]];
+  funnelUI = XPLRFunnel.mount(el, {
+    pin: () => session.pin, steps,
+    tiles: [{ label:"Visits", step:"land" }, { label:"Started", step:"start", of:"land" }, { label:"Starters who left details", step:"gate_submit", of:"start" }, { label:"Booked", step:"booked" }],
+    engagement: { title:"On the results page", base:"results_view", items:[["Opened a cause","cause_open"],["Tapped a cause chip in the checks","chip_click"],["Played their result video","video_result"],["Played the closing video","video_closing"],["Read the client story","proof_view"],["Opened a question in Before you book","faq_open"],["Tapped the sticky book button","sticky_click"],["Saw the calendar","cal_view"],["Downloaded the routine PDF","pdf"],["Copied their reading","copy"],["Retook it","retake"]] },
+    breakdowns: [
+      { title:"By source", key:"src", head:"Source", cols: both, rate:["Lead rate","gate_submit","land"] },
+      { title:"By result", key:"p.r", head:"Result", label: id => id + " · " + ((RESULTS[id] || {}).name || ""), cols:[["Readings","results_view"],["Opened a cause","cause_open"],["Reached the call","call_view"],["Book clicks","book_click"],["Booked","booked"]] },
+      { title:"By stage", key:"p.st", head:"Stage", cols:[["Readings","results_view"],["Reached the call","call_view"],["Booked","booked"]] }
+    ],
+    tops: [{ title:"Most opened causes", head:"Cause", event:"cause_open", by:"p.r", label:(k, id) => { const c = ((RESULTS[id] || {}).causes || []).find(x => x.k === k); return id + " · " + k + " · " + (c ? c.name : ""); } }]
+  });
 }
 
 function exportCsv(){
@@ -414,7 +340,7 @@ function exportCsv(){
 function toast(m){ const t = document.getElementById("toast"); t.textContent = m; t.classList.add("on"); setTimeout(() => t.classList.remove("on"), 1800); }
 
 (async () => {
-  if (session){ const r = await api(session); if (r.ok){ try { localStorage.setItem("ica-notrack", "1"); } catch(e){} data = r; return renderApp(); } session = null; sessionStorage.removeItem(SESSION); }
+  if (session){ const r = await api(session); if (r.ok){ try { localStorage.setItem("xplr-notrack", "1"); } catch(e){} data = r; return renderApp(); } session = null; sessionStorage.removeItem(SESSION); }
   renderLogin();
 })();
 </script>

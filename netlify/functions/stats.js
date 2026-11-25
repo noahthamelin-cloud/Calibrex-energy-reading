@@ -1,6 +1,7 @@
-// Admin analytics. Checks the PIN, then returns the anonymous visit records for a date range,
-// trimmed to what the Funnel tab needs. The admin page does the counting so filters are instant.
-// Env vars: ADMIN_PIN. Reads the "events" Blobs store written by track.js.
+// XPLR Funnel Tracking · admin read · v1.0 (Nov 2026)
+// Checks the build's admin PIN, then returns the anonymous visit records for a date range, trimmed for
+// xplr-funnel.js. The admin page does the counting, so its filters are instant.
+// Env: ADMIN_PIN (the same PIN the build's admin already uses). Reads the "events" Blobs store.
 const { getStore, connectLambda } = require("@netlify/blobs");
 const json = (status, body) => ({ statusCode: status, headers: { "Content-Type": "application/json", "Cache-Control": "no-store" }, body: JSON.stringify(body) });
 const MAX = 5000;   // visits per request; past this the oldest in range are left out and the response says so
@@ -23,8 +24,7 @@ exports.handler = async (event) => {
     const out = [];
     for (let i = 0; i < keys.length; i += 100) {
       const part = await Promise.all(keys.slice(i, i + 100).map(k => store.get(k, { type: "json" }).catch(() => null)));
-      for (const s of part) if (s) out.push({ d: s.day, src: s.src, dev: s.dev, st: Object.keys(s.steps || {}), q: s.q || 0,
-        r: s.result || null, g: s.stage || null, en: s.energy ?? null, c: s.causes || {}, ch: s.chips || 0, v: s.vid });
+      for (const s of part) if (s) out.push({ d: s.day, src: s.src || "direct", cmp: s.cmp || "", dev: s.dev, st: Object.keys(s.steps || {}), q: s.q || 0, cnt: s.cnt || {}, p: s.p || {}, v: s.vid });
     }
     return json(200, { from, days, truncated, sessions: out });
   } catch (e) { return json(502, { error: "Could not read the analytics store: " + String(e.message || e) }); }

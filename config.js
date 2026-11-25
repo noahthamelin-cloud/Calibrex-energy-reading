@@ -4172,6 +4172,42 @@ window.ICA = {
     footerResults: "If you have diabetes, high blood pressure or kidney disease, talk to your doctor before changing sugar or salt."
   },
 
+  /* ---------- The offer: shown inside the call block on the results page, above the calendar.
+     Price is not shown on purpose (Etienne: $10k, save it for the call). Testimonial and photo used with permission. ---------- */
+  offer: {
+    code: "CAL-07 · THE PROGRAM",
+    title: ["The Six-Month", "Calibration."],
+    lead: "What the call is about. If it's a fit, this is what we build together.",
+    items: [
+      ["Built around you", "A protocol based on your history and the goal you set."],
+      ["Basics first", "Nutrition, training, light exposure, sleep and habits. These come before anything else."],
+      ["Then targeted work", "Supplementation and more advanced tools, only when your situation calls for them."],
+      ["Measured", "Bloodwork and other tests as needed."],
+      ["Adjusted weekly", "The protocol changes every week, based on your progress and the data we collect."],
+      ["Direct access", "Text me any time, with a reply within 24 hours. Short check-in calls when you need them."]
+    ],
+    length: "6 months",
+    guaranteeTitle: "The Calibration Guarantee · Day 30",
+    proofCode: "FROM A CLIENT",
+    proof: [
+      {
+        name: "Stefan Albert",
+        role: "Client",
+        photo: "assets/client-stefan.webp",
+        quote: "The process of working with ET has been great and easy. He really takes the time to communicate so that we can address bottlenecks. My concentration, energy and motivation have gotten better. I feel much better than I used to. Lots of trial and error, but every time we try new things it keeps getting better. The 1 on 1 support has been really life changing. The human touch makes a massive difference: having access to you, communicating changes and getting very fast feedback."
+      }
+    ],
+    faqCode: "BEFORE YOU BOOK",
+    faq: [
+      ["What happens on the 15-minute call?", "We go through your reading together. I tell you whether the Six-Month Calibration is the right fit, and you decide. No obligation."],
+      ["Why would this work when everything else I've tried hasn't?", "Most plans are a fixed template. This one starts from your history and your goal, begins with the basics, and changes every week based on your progress and the data we collect. If something isn't moving, we change it."],
+      ["What results should I expect, and how soon?", "The first checkpoint is days 24 to 30, measured against your starting baseline. What changes first is different for everyone, so we go through what's realistic for you on the call."],
+      ["What do I get, and what does it cost all-in?", "Six months one on one: a protocol built for you and updated weekly, text access with a reply within 24 hours, and check-in calls when you need them. Bloodwork and other tests are done as needed. I go through the full investment on the call."],
+      ["What happens if it doesn't work?", "Your energy is tracked from a starting baseline. If it isn't above that baseline in days 24 to 30, the protocol is rebuilt and a month is added at no extra cost."]
+    ],
+    sticky: "Book my 15-minute call"
+  },
+
   /* ---------- Admin: the opener written into each Text / WhatsApp / email button ---------- */
   admin: {
     /* Each result's own question follows this line (see "opener" on every result). */
